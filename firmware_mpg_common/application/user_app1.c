@@ -136,7 +136,126 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+  static u8 au8MyName[]="Liu Rendi";
+  static u8 au8MyClass[]="Robot 162";
+  static u16 u16Counter=0;
+  static u8 u8Adress=21;
+  static u16 u16LedCounter=0;
 
+  u16LedCounter++;
+  u16Counter++;
+
+  if(u16Counter == COUNTER_LIMIT)
+  {
+      u8Adress--;
+      u16Counter=0;
+      LCDCommand(LCD_CLEAR_CMD);
+      LCDMessage(LINE1_START_ADDR+u8Adress,au8MyName);
+      LCDMessage(LINE2_START_ADDR+u8Adress,au8MyClass);
+  }
+  
+  if(u8Adress == LINE1_START_ADDR)
+  {
+      u8Adress=21;
+  }
+
+  if(u8Adress == 19)
+  {
+      LedOn(LCD_RED);
+      LedOn(LCD_GREEN);
+      LedOn(LCD_BLUE);
+  }
+
+  if(u8Adress == 17)
+  {
+      LedOn(LCD_RED);
+      LedOff(LCD_GREEN);
+      LedOn(LCD_BLUE);
+  }
+
+  if(u8Adress == 15)
+  {
+      LedOff(LCD_RED);
+      LedOff(LCD_GREEN);
+      LedOn(LCD_BLUE);
+  }
+
+  if(u8Adress == 13)
+  {
+      LedOff(LCD_RED);
+      LedOn(LCD_GREEN);
+      LedOn(LCD_BLUE);
+  }
+
+  if(u8Adress == 11)
+  {
+      LedOff(LCD_RED);
+      LedOn(LCD_GREEN);
+      LedOff(LCD_BLUE);
+  }
+
+  if(u8Adress == 9)
+  {
+      LedOn(LCD_RED);
+      LedOn(LCD_GREEN);
+      LedOff(LCD_BLUE);
+  }
+
+  if(u8Adress == 7)
+  {
+      LedOn(LCD_RED);
+      LedOff(LCD_GREEN);
+      LedOff(LCD_BLUE);
+  }
+
+  if(u8Adress == 5)
+  {
+      LedOn(LCD_RED); 
+      LedOn(LCD_GREEN); 
+      LedOn(LCD_BLUE); 
+  }
+
+  if(u16LedCounter == 100)
+  {
+      LedOff(WHITE);
+      LedOn(RED);
+  }
+  if(u16LedCounter == 200)
+  {
+      LedOn(ORANGE);
+      LedOff(RED);
+  }
+  if(u16LedCounter == 300)
+  {
+      LedOn(YELLOW);
+      LedOff(ORANGE);
+  }
+  if(u16LedCounter == 400)
+  {
+      LedOn(GREEN);
+      LedOff(YELLOW);
+  }
+  if(u16LedCounter == 500)
+  {
+      LedOn(CYAN);
+      LedOff(GREEN);
+  }
+  if(u16LedCounter == 600)
+  {
+      LedOn(BLUE);
+      LedOff(CYAN);
+  }
+  if(u16LedCounter == 700)
+  {
+      LedOn(PURPLE);
+      LedOff(BLUE);
+  }
+  if(u16LedCounter == 800)
+  {
+      u16LedCounter=0;
+      LedOn(WHITE);
+      LedOff(PURPLE);
+  }
 } /* end UserApp1SM_Idle() */
     
 #if 0
