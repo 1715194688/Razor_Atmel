@@ -131,8 +131,90 @@ State Machine Function Definitions
 /* Wait for input */
 static void UserApp1SM_Idle(void)
 {
-  11
+  
 } /* end UserApp1SM_Idle() */
+
+
+static void UserApp1GeneralFunctions(void)
+{
+  static bool bWhetherStart=TRUE;
+  u8 au8TopOutput[]="******************************************************\n\rLED Programming Interface\n\rrPress 1 to program Led command sequence\n\rrPress 2 to show current USER program\n\r******************************************************";
+  static u8 au8InputData[100];
+
+  if(bWhetherStart == TRUE)
+  {
+      DebugPrintf(au8TopOutput);
+      bWhetherStart=FALSE;
+  }
+
+  if(G_u8DebugScanfCharCount == 1)
+  {
+      DebugScanf(au8Press1or2);
+
+      if(au8InputData[0] == 1)
+      {
+          DebugLineFeed();
+          LedDisplayStartList();
+          UserApp1_StateMachine=UserApp1Press1Function();
+      }
+
+      if(au8InputData[0] == 2)
+      {
+          DebugLineFeed();
+          UserApp1_StateMachine=UserApp1Press2Function();
+      }
+      else
+      {
+          DebugLineFeed();
+          DebugPrintf("Invalid command:please press 1 or 2");
+          DebugLineFeed();
+      }
+  }
+}
+
+
+static void UserApp1Press1Function(void)
+{
+  
+
+
+
+
+
+
+
+
+}
+
+
+static void UserApp1Press2Function(void)
+{
+  static bool bWhetherStart=TRUE;
+  static u8 au8InputData[100];
+
+  if(bWhetherStart == TRUE)
+  {
+      DebugLineFeed();
+      DebugPrintf("Current USER Program:");
+      DebugLineFeed();
+      DebugLineFeed();
+      DebugPrintf("LED   ON TIME   OFF TIME\n\r------------------------\n\r");
+      
+  }
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
                       
             
 #if 0
