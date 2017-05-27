@@ -131,7 +131,7 @@ State Machine Function Definitions
 /* Wait for input */
 static void UserApp1SM_Idle(void)
 {
-  
+  11
 } /* end UserApp1SM_Idle() */
                       
             
