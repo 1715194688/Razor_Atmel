@@ -48,7 +48,7 @@ Variable names shall start with "UserApp1_" and be declared as static.
 ***********************************************************************************************************************/
 static fnCode_type UserApp1_StateMachine;            /* The state machine function pointer */
 //static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
-
+static u8 u8Number = 2;
 
 /**********************************************************************************************************************
 Function Definitions
@@ -83,15 +83,14 @@ void UserApp1Initialize(void)
   DebugSetPassthrough();
   DebugPrintf(au8UserApp1Start1);
   
-    /* If good initialization, set state to Idle */
+    /* If good initialization, set state to General Function */
   if( 1 )
   {
-    UserApp1_StateMachine = UserApp1SM_Idle;
+    UserApp1_StateMachine = UserApp1GeneralModule;
   }
   else
   {
-    /* The task isn't properly initialized, so shut it down and don't run */
-    UserApp1_StateMachine = UserApp1SM_FailedInit;
+
   }
 
 } /* end UserApp1Initialize() */
@@ -135,70 +134,253 @@ static void UserApp1SM_Idle(void)
 } /* end UserApp1SM_Idle() */
 
 
-static void UserApp1GeneralFunctions(void)
+/*The total function*/
+static void UserApp1GeneralModule(void)
 {
+  /*Determine whether the program is running*/
   static bool bWhetherStart=TRUE;
   u8 au8TopOutput[]="******************************************************\n\rLED Programming Interface\n\rrPress 1 to program Led command sequence\n\rrPress 2 to show current USER program\n\r******************************************************";
+  /*Store the input content*/
   static u8 au8InputData[100];
 
-  if(bWhetherStart == TRUE)
+  if(bWhetherStart)
   {
       DebugPrintf(au8TopOutput);
       bWhetherStart=FALSE;
   }
 
+  /*Determine which function the user uses*/
   if(G_u8DebugScanfCharCount == 1)
   {
-      DebugScanf(au8Press1or2);
+      DebugScanf(au8InputData);
 
       if(au8InputData[0] == 1)
       {
           DebugLineFeed();
           LedDisplayStartList();
-          UserApp1_StateMachine=UserApp1Press1Function();
+          /*Call the UserApp1Press1Function after pressing 1*/
+          UserApp1_StateMachine = UserApp1Press1Module;
       }
 
       if(au8InputData[0] == 2)
       {
           DebugLineFeed();
-          UserApp1_StateMachine=UserApp1Press2Function();
+          /*Call the UserApp1Press2Function after pressing 2*/
+          UserApp1_StateMachine = UserApp1Press2Module;
       }
       else
       {
           DebugLineFeed();
-          DebugPrintf("Invalid command:please press 1 or 2");
+          DebugPrintf("What you input is invalid, press 1 or 2 please");
           DebugLineFeed();
       }
   }
 }
 
 
-static void UserApp1Press1Function(void)
+static void UserApp1Press1Module(void)
 {
-  
+  static u8 au8InputData[100];
+  static bool bWhetherStart=TRUE;
+  static bool bStartInput=TRUE;
+  static bool bEndInput=FALSE;
+  static u8 u8Index1=2;
+  static u8 u8Index2=2;
+  static u32 u32TurnOnTime=0;
+  static u32 u32TurnOffTime=0;
+  LedCommandType eCommand;
 
+  if(bWhetherStart)
+  {
+      DebugLineFeed();
+      DebugLineFeed();
+      DebugPrintf("Enter commands as LED-ONTIME-OFFTIME and press Enter\n\rTime is in milliseconds, max 100commands\n\rLED colors:R,O,Y,G,C,B,P,W\n\rExample:R-100-200(Red on at 100ms and off at 200 ms)\n\rPress Enter on blank line to end\n\r");
+      bWhetherStart=FALSE;
+  }
 
+  if(G_u8DebugScanfCharCount == 1)
+  {
+      if(G_au8DebugScanfBuffer[0] == 'R')
+      {
+          eCommand.eLED=RED;
+      }
 
+      if(G_au8DebugScanfBuffer[0] == 'O')
+      {
+          eCommand.eLED=ORANGE;
+      }
 
+      if(G_au8DebugScanfBuffer[0] == 'Y')
+      {
+          eCommand.eLED=YELLOW;
+      }
 
+      if(G_au8DebugScanfBuffer[0] == 'G')
+      {
+          eCommand.eLED=GREEN;
+      }
 
+      if(G_au8DebugScanfBuffer[0] == 'C')
+      {
+          eCommand.eLED=CYAN;
+      }
+
+      if(G_au8DebugScanfBuffer[0] == 'B')
+      {
+          eCommand.eLED=BLUE;
+      }
+
+      if(G_au8DebugScanfBuffer[0] == 'P')
+      {
+          eCommand.eLED=PURPLE;
+      }
+
+      if(G_au8DebugScanfBuffer[0] == 'W')
+      {
+          eCommand.eLED=WHITE;
+      }
+  }
+
+  if(bStartInput)
+  {
+      DebugScanf(au8InputData);
+      if(G_u8DebugScanfCharCount>2)
+      {
+          if(G_au8DebugScanfBuffer[u8Index1] == '-')
+          {
+              eCommand.bOn=TRUE;
+              eCommand.u32Time=u32TurnOnTime;
+              eCommand.eCurrentRate=LED_PWM_0;
+              LedDisplayAddCommand(USER_LIST, &eCommand);
+              bStartInput=FALSE;
+              bEndInput=TRUE;
+              u8Index2=u8Index1;
+          }
+
+          else
+          {
+              if(u8Index2 == u8Index1)
+              {
+                  u32TurnOnTime=u32TurnOnTime*10+(G_au8DebugScanfBuffer[u8Index1]-'0');
+                  u8Index1++;
+              }
+          }
+          u8Index2=G_u8DebugScanfCharCount-1;
+          
+      }
+  }
+
+  if(bEndInput)
+  {
+      if(G_au8DebugScanfBuffer[u8Index1] == '\r')
+      {
+          if(G_au8DebugScanfBuffer[u8Index1] == '-')
+          {
+              u8Index1++;
+              
+              if(u8Index1 == u8Index2)
+              {
+                  u32TurnOffTime=u32TurnOffTime*10+(G_au8DebugScanfBuffer[u8Index1]-'0');
+                  u8Index1++;
+              }
+
+              u8Index2=G_u8DebugScanfCharCount-1;
+          }
+
+          else
+          {
+              u8Index1++;
+          }
+      }
+
+      else
+      {
+          eCommand.bOn = FALSE;
+          eCommand.u32Time = u32TurnOffTime;
+          eCommand.eCurrentRate = LED_PWM_100;
+          LedDisplayAddCommand(USER_LIST, &eCommand);
+          u32TurnOnTime=0;
+          u32TurnOffTime=0;
+          u8Index1=2;
+          u8Index2=2;
+          for(u8 i=0;i<G_u8DebugScanfCharCount;i++)
+          {
+              G_au8DebugScanfBuffer[i] = '\0';
+          }
+          G_u8DebugScanfCharCount=0;
+          bStartInput=TRUE;
+          bEndInput=FALSE;
+          DebugLineFeed();
+          DebugPrintNumber(u8Number);
+          DebugPrintf(":"); 
+          u8Number++;
+      }
+  }
 
 
 }
 
 
-static void UserApp1Press2Function(void)
+
+
+
+
+
+static void UserApp1Press2Module(void)
 {
   static bool bWhetherStart=TRUE;
   static u8 au8InputData[100];
+  u8 u8EntryCounter=0;
 
-  if(bWhetherStart == TRUE)
+  if(bWhetherStart)
   {
+      DebugLineFeed();
       DebugLineFeed();
       DebugPrintf("Current USER Program:");
       DebugLineFeed();
       DebugLineFeed();
       DebugPrintf("LED   ON TIME   OFF TIME\n\r------------------------\n\r");
+      while(LedDisplayListLine(u8EntryCounter++))
+      DebugPrintf("\n\r------------------------\n\r");
+      DebugPrintf("Press 1 to Program");
+
+      bWhetherStart=FALSE;
+  }
+
+  if(G_u8DebugScanfCharCount == 1)
+  {
+      DebugScanf(au8InputData);
+      
+      if(au8InputData[0] == 1)
+      {
+          UserApp1_StateMachine = UserApp1Press1Module;
+      }
+  }
+
+}
+
+
+
+static void UserApp1Module(void)
+{
+  static bool bWhetherStart=TRUE;
+  static u8 au8InputData[100];
+  u8 u8EntryCounter=0;
+
+  if(bWhetherStart)
+  {
+      DebugLineFeed();
+      DebugPrintf("Command entry complete.\n\rCommand entered:");
+      DebugPrintNumber(u8CommandCount);
+      DebugLineFeed();
+      DebugLineFeed();
+      DebugPrintf("New USER program:");
+      DebugLineFeed();
+      DebugLineFeed();
+      DebugPrintf("LED   ON TIME   OFF TIME\n\r------------------------\n\r");
+      while(LedDisplayListLine(u8EntryCounter++))
+      DebugPrintf("\n\r------------------------\n\r");
+      
       
   }
 
@@ -214,13 +396,12 @@ static void UserApp1Press2Function(void)
 
 
 
-
                       
             
 #if 0
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Handle an error */
-static void UserApp1SM_Error(void)          
+static void UserApp1SM_Error(void)
 {
   
 } /* end UserApp1SM_Error() */
@@ -229,7 +410,7 @@ static void UserApp1SM_Error(void)
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* State to sit in if init failed */
-static void UserApp1SM_FailedInit(void)          
+static void UserApp1SM_FailedInit(void)
 {
     
 } /* end UserApp1SM_FailedInit() */
