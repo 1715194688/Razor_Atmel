@@ -138,15 +138,15 @@ static void UserApp1SM_Idle(void)
 static void UserApp1GeneralModule(void)
 {
   /*Determine whether the program is running*/
-  static bool bWhetherStart=TRUE;
-  u8 au8TopOutput[]="******************************************************\n\rLED Programming Interface\n\rrPress 1 to program Led command sequence\n\rrPress 2 to show current USER program\n\r******************************************************";
+  static bool bWhetherStart = TRUE;
+  u8 au8TopOutput[] = "******************************************************\n\rLED Programming Interface\n\rrPress 1 to program Led command sequence\n\rrPress 2 to show current USER program\n\r******************************************************\n\r";
   /*Store the input content*/
   static u8 au8InputData[100];
 
   if(bWhetherStart)
   {
       DebugPrintf(au8TopOutput);
-      bWhetherStart=FALSE;
+      bWhetherStart = FALSE;
   }
 
   /*Determine which function the user uses*/
@@ -154,7 +154,7 @@ static void UserApp1GeneralModule(void)
   {
       DebugScanf(au8InputData);
 
-      if(au8InputData[0] == 1)
+      if(au8InputData[0] == '1')
       {
           DebugLineFeed();
           LedDisplayStartList();
@@ -162,7 +162,7 @@ static void UserApp1GeneralModule(void)
           UserApp1_StateMachine = UserApp1Press1Module;
       }
 
-      if(au8InputData[0] == 2)
+      if(au8InputData[0] == '2')
       {
           DebugLineFeed();
           /*Call the UserApp1Press2Function after pressing 2*/
@@ -181,110 +181,105 @@ static void UserApp1GeneralModule(void)
 static void UserApp1Press1Module(void)
 {
   static u8 au8InputData[100];
-  static bool bWhetherStart=TRUE;
-  static bool bStartInput=TRUE;
-  static bool bEndInput=FALSE;
-  static u8 u8Index1=2;
-  static u8 u8Index2=2;
-  static u32 u32TurnOnTime=0;
-  static u32 u32TurnOffTime=0;
-  LedCommandType eCommand;
+  static bool bWhetherStart = TRUE;
+  static bool bStartInput = TRUE;
+  static bool bEndInput = FALSE;
+  static u8 u8Index1 = 2;
+  static u8 u8Index2 = 2;
+  static u32 u32TurnOnTime = 0;
+  static u32 u32TurnOffTime = 0;
+  LedCommandType eYourCommand;
 
   if(bWhetherStart)
   {
       DebugLineFeed();
       DebugLineFeed();
       DebugPrintf("Enter commands as LED-ONTIME-OFFTIME and press Enter\n\rTime is in milliseconds, max 100commands\n\rLED colors:R,O,Y,G,C,B,P,W\n\rExample:R-100-200(Red on at 100ms and off at 200 ms)\n\rPress Enter on blank line to end\n\r");
-      bWhetherStart=FALSE;
+      bWhetherStart = FALSE;
   }
 
   if(G_u8DebugScanfCharCount == 1)
   {
       if(G_au8DebugScanfBuffer[0] == 'R')
       {
-          eCommand.eLED=RED;
+          eYourCommand.eLED = RED;
       }
 
       if(G_au8DebugScanfBuffer[0] == 'O')
       {
-          eCommand.eLED=ORANGE;
+          eYourCommand.eLED = ORANGE;
       }
 
       if(G_au8DebugScanfBuffer[0] == 'Y')
       {
-          eCommand.eLED=YELLOW;
+          eYourCommand.eLED = YELLOW;
       }
 
       if(G_au8DebugScanfBuffer[0] == 'G')
       {
-          eCommand.eLED=GREEN;
+          eYourCommand.eLED = GREEN;
       }
 
       if(G_au8DebugScanfBuffer[0] == 'C')
       {
-          eCommand.eLED=CYAN;
+          eYourCommand.eLED = CYAN;
       }
 
       if(G_au8DebugScanfBuffer[0] == 'B')
       {
-          eCommand.eLED=BLUE;
+          eYourCommand.eLED = BLUE;
       }
 
       if(G_au8DebugScanfBuffer[0] == 'P')
       {
-          eCommand.eLED=PURPLE;
+          eYourCommand.eLED = PURPLE;
       }
 
       if(G_au8DebugScanfBuffer[0] == 'W')
       {
-          eCommand.eLED=WHITE;
+          eYourCommand.eLED = WHITE;
       }
   }
 
   if(bStartInput)
   {
-      DebugScanf(au8InputData);
-      if(G_u8DebugScanfCharCount>2)
+      if(G_u8DebugScanfCharCount >= 3)
       {
           if(G_au8DebugScanfBuffer[u8Index1] == '-')
           {
-              eCommand.bOn=TRUE;
-              eCommand.u32Time=u32TurnOnTime;
-              eCommand.eCurrentRate=LED_PWM_0;
-              LedDisplayAddCommand(USER_LIST, &eCommand);
-              bStartInput=FALSE;
-              bEndInput=TRUE;
-              u8Index2=u8Index1;
+              eYourCommand.bOn = TRUE;
+              eYourCommand.u32Time = u32TurnOnTime;
+              eYourCommand.eCurrentRate = LED_PWM_0;
+              LedDisplayAddCommand(USER_LIST, &eYourCommand);
+              bStartInput = FALSE;
+              bEndInput = TRUE;
+              u8Index2 = u8Index1;
           }
 
           else
           {
               if(u8Index2 == u8Index1)
               {
-                  u32TurnOnTime=u32TurnOnTime*10+(G_au8DebugScanfBuffer[u8Index1]-'0');
+                  u32TurnOnTime = u32TurnOnTime*10 + (G_au8DebugScanfBuffer[u8Index1]-'0');
                   u8Index1++;
               }
+              u8Index2 = G_u8DebugScanfCharCount - 1;
           }
-          u8Index2=G_u8DebugScanfCharCount-1;
-          
       }
   }
 
   if(bEndInput)
   {
-      if(G_au8DebugScanfBuffer[u8Index1] == '\r')
+      if(G_au8DebugScanfBuffer[u8Index1] != '\r')
       {
-          if(G_au8DebugScanfBuffer[u8Index1] == '-')
+          if(G_au8DebugScanfBuffer[u8Index1] != '-')
           {
-              u8Index1++;
-              
               if(u8Index1 == u8Index2)
               {
-                  u32TurnOffTime=u32TurnOffTime*10+(G_au8DebugScanfBuffer[u8Index1]-'0');
+                  u32TurnOffTime = u32TurnOffTime*10+(G_au8DebugScanfBuffer[u8Index1]-'0');
                   u8Index1++;
               }
-
-              u8Index2=G_u8DebugScanfCharCount-1;
+              u8Index2 = G_u8DebugScanfCharCount - 1;
           }
 
           else
@@ -295,42 +290,44 @@ static void UserApp1Press1Module(void)
 
       else
       {
-          eCommand.bOn = FALSE;
-          eCommand.u32Time = u32TurnOffTime;
-          eCommand.eCurrentRate = LED_PWM_100;
-          LedDisplayAddCommand(USER_LIST, &eCommand);
-          u32TurnOnTime=0;
-          u32TurnOffTime=0;
-          u8Index1=2;
-          u8Index2=2;
-          for(u8 i=0;i<G_u8DebugScanfCharCount;i++)
+          eYourCommand.bOn = FALSE;
+          eYourCommand.u32Time = u32TurnOffTime;
+          eYourCommand.eCurrentRate = LED_PWM_100;
+          LedDisplayAddCommand(USER_LIST, &eYourCommand);
+          u32TurnOnTime = 0;
+          u32TurnOffTime = 0;
+          u8Index1 = 2;
+          u8Index2 = 2;
+          for(u8 i = 0; i<G_u8DebugScanfCharCount; i++)
           {
               G_au8DebugScanfBuffer[i] = '\0';
           }
-          G_u8DebugScanfCharCount=0;
-          bStartInput=TRUE;
-          bEndInput=FALSE;
+          G_u8DebugScanfCharCount = 0;
+          bStartInput = TRUE;
+          bEndInput = FALSE;
           DebugLineFeed();
           DebugPrintNumber(u8Number);
           DebugPrintf(":"); 
           u8Number++;
       }
   }
-
-
+  
+  if(G_au8DebugScanfBuffer[0] =='\r')
+  {
+      UserApp1_StateMachine = UserApp1Module;
+  }
+  else
+  {
+      G_au8DebugScanfBuffer[0] = '\0';
+  }
 }
-
-
-
-
-
 
 
 static void UserApp1Press2Module(void)
 {
-  static bool bWhetherStart=TRUE;
+  static bool bWhetherStart = TRUE;
   static u8 au8InputData[100];
-  u8 u8EntryCounter=0;
+  u8 u8EntryCounter = 0;
 
   if(bWhetherStart)
   {
@@ -340,11 +337,11 @@ static void UserApp1Press2Module(void)
       DebugLineFeed();
       DebugLineFeed();
       DebugPrintf("LED   ON TIME   OFF TIME\n\r------------------------\n\r");
-      while(LedDisplayListLine(u8EntryCounter++))
+      while( LedDisplayPrintListLine(u8EntryCounter++) )
       DebugPrintf("\n\r------------------------\n\r");
       DebugPrintf("Press 1 to Program");
 
-      bWhetherStart=FALSE;
+      bWhetherStart = FALSE;
   }
 
   if(G_u8DebugScanfCharCount == 1)
@@ -356,40 +353,45 @@ static void UserApp1Press2Module(void)
           UserApp1_StateMachine = UserApp1Press1Module;
       }
   }
-
 }
-
 
 
 static void UserApp1Module(void)
 {
-  static bool bWhetherStart=TRUE;
+  static bool bWhetherStart = TRUE;
   static u8 au8InputData[100];
-  u8 u8EntryCounter=0;
+  u8 u8EntryCounter = 0;
 
   if(bWhetherStart)
   {
       DebugLineFeed();
       DebugPrintf("Command entry complete.\n\rCommand entered:");
-      DebugPrintNumber(u8CommandCount);
+      DebugPrintNumber(u8Number - 1);
       DebugLineFeed();
       DebugLineFeed();
       DebugPrintf("New USER program:");
       DebugLineFeed();
       DebugLineFeed();
       DebugPrintf("LED   ON TIME   OFF TIME\n\r------------------------\n\r");
-      while(LedDisplayListLine(u8EntryCounter++))
+      while( LedDisplayPrintListLine(u8EntryCounter++) );
       DebugPrintf("\n\r------------------------\n\r");
-      
-      
+
+      for(u8 i = 0; i < G_u8DebugScanfCharCount; i++)
+      {
+          G_au8DebugScanfBuffer[i] = '\0';
+      }
+      G_u8DebugScanfCharCount = 0;
+      bWhetherStart = FALSE;
   }
 
-
-
-
-
-
-
+  if(G_u8DebugScanfCharCount == 1)
+  {
+      DebugScanf(au8InputData);
+      if(au8InputData[0] == '1')
+      {
+          UserApp1_StateMachine = UserApp1Press2Module;
+      }
+  }
 }
 
 
