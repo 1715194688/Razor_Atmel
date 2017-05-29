@@ -8,7 +8,7 @@ Header file for user_app2.c
 
 #ifndef __USER_APP2_H
 #define __USER_APP2_H
-#define USER_LIST_EXAMPLE
+
 /**********************************************************************************************************************
 Type Definitions
 **********************************************************************************************************************/
@@ -41,7 +41,7 @@ Constants / Definitions
 **********************************************************************************************************************/
 //#define USER_LIST_EXAMPLE         /* Define to load a default User LED command list */
 #define DEMO_KNIGHT_RIDER         /* Define to load the Knight Rider DEMO LED command list */
-
+#define USER_LIST_EXAMPLE
 
 #define MAX_LIST_SIZE             (u8)200               /* Maximum number of list entries (100 commands, each with START and END */
 #define LED_FADE_TIME             (u32)20               /* On time in ms for each level of PWM during fade */

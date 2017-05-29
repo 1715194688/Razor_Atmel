@@ -130,11 +130,16 @@ State Machine Function Definitions
 /* Wait for input */
 static void UserApp1SM_Idle(void)
 {
-  
+
 } /* end UserApp1SM_Idle() */
 
 
-/*The total function*/
+/*----------------------------------------------------------------------------------------------------
+Function UserApp1GeneralModule()
+
+Description:
+Call different functions.
+*/
 static void UserApp1GeneralModule(void)
 {
   /*Determine whether the program is running*/
@@ -154,21 +159,23 @@ static void UserApp1GeneralModule(void)
   {
       DebugScanf(au8InputData);
 
+      /*Call the UserApp1Press1Module after pressing 1*/
       if(au8InputData[0] == '1')
       {
           DebugLineFeed();
           LedDisplayStartList();
-          /*Call the UserApp1Press1Function after pressing 1*/
           UserApp1_StateMachine = UserApp1Press1Module;
       }
 
+      /*Call the UserApp1Press2Module after pressing 2*/
       if(au8InputData[0] == '2')
       {
           DebugLineFeed();
-          /*Call the UserApp1Press2Function after pressing 2*/
           UserApp1_StateMachine = UserApp1Press2Module;
       }
-      else
+
+      /*Remind the user to press 1 or 2*/
+      else if(au8InputData[0] != '1' && au8InputData[0] != '2')
       {
           DebugLineFeed();
           DebugPrintf("What you input is invalid, press 1 or 2 please");
@@ -178,9 +185,14 @@ static void UserApp1GeneralModule(void)
 }
 
 
+/*----------------------------------------------------------------------------------------------------
+Function UserApp1Press1Module()
+
+Description:
+Help the user input commands they want.
+*/
 static void UserApp1Press1Module(void)
 {
-  static u8 au8InputData[100];
   static bool bWhetherStart = TRUE;
   static bool bStartInput = TRUE;
   static bool bEndInput = FALSE;
@@ -194,53 +206,55 @@ static void UserApp1Press1Module(void)
   {
       DebugLineFeed();
       DebugLineFeed();
-      DebugPrintf("Enter commands as LED-ONTIME-OFFTIME and press Enter\n\rTime is in milliseconds, max 100commands\n\rLED colors:R,O,Y,G,C,B,P,W\n\rExample:R-100-200(Red on at 100ms and off at 200 ms)\n\rPress Enter on blank line to end\n\r");
+      /*Describe the rule of the command*/
+      DebugPrintf("Enter commands as LED-ONTIME-OFFTIME and press Enter\n\rTime is in milliseconds, max 100commands\n\rLED colors:R,O,Y,G,C,B,P,W\n\rExample:R-100-200(Red on at 100ms and off at 200 ms)\n\rPress Enter on blank line to end\n\r1:");
       bWhetherStart = FALSE;
   }
 
   if(G_u8DebugScanfCharCount == 1)
   {
-      if(G_au8DebugScanfBuffer[0] == 'R')
+      if(G_au8DebugScanfBuffer[0] == 'R' || G_au8DebugScanfBuffer[0] == 'r')
       {
           eYourCommand.eLED = RED;
       }
 
-      if(G_au8DebugScanfBuffer[0] == 'O')
+      if(G_au8DebugScanfBuffer[0] == 'O' || G_au8DebugScanfBuffer[0] == 'o')
       {
           eYourCommand.eLED = ORANGE;
       }
 
-      if(G_au8DebugScanfBuffer[0] == 'Y')
+      if(G_au8DebugScanfBuffer[0] == 'Y' || G_au8DebugScanfBuffer[0] == 'y')
       {
           eYourCommand.eLED = YELLOW;
       }
 
-      if(G_au8DebugScanfBuffer[0] == 'G')
+      if(G_au8DebugScanfBuffer[0] == 'G' || G_au8DebugScanfBuffer[0] == 'g')
       {
           eYourCommand.eLED = GREEN;
       }
 
-      if(G_au8DebugScanfBuffer[0] == 'C')
+      if(G_au8DebugScanfBuffer[0] == 'C' || G_au8DebugScanfBuffer[0] == 'c')
       {
           eYourCommand.eLED = CYAN;
       }
 
-      if(G_au8DebugScanfBuffer[0] == 'B')
+      if(G_au8DebugScanfBuffer[0] == 'B' || G_au8DebugScanfBuffer[0] == 'b')
       {
           eYourCommand.eLED = BLUE;
       }
 
-      if(G_au8DebugScanfBuffer[0] == 'P')
+      if(G_au8DebugScanfBuffer[0] == 'P' || G_au8DebugScanfBuffer[0] == 'p')
       {
           eYourCommand.eLED = PURPLE;
       }
 
-      if(G_au8DebugScanfBuffer[0] == 'W')
+      if(G_au8DebugScanfBuffer[0] == 'W' || G_au8DebugScanfBuffer[0] == 'w')
       {
           eYourCommand.eLED = WHITE;
       }
   }
 
+  /*Set the moment when the LED lights are turned on*/
   if(bStartInput)
   {
       if(G_u8DebugScanfCharCount >= 3)
@@ -260,6 +274,7 @@ static void UserApp1Press1Module(void)
           {
               if(u8Index2 == u8Index1)
               {
+                  /*Get the TurnOnTime number you input*/
                   u32TurnOnTime = u32TurnOnTime*10 + (G_au8DebugScanfBuffer[u8Index1]-'0');
                   u8Index1++;
               }
@@ -323,12 +338,19 @@ static void UserApp1Press1Module(void)
 }
 
 
+/*----------------------------------------------------------------------------------------------------
+Function UserApp1Press2Module()
+
+Description:
+Help to see the current program.
+*/
 static void UserApp1Press2Module(void)
 {
   static bool bWhetherStart = TRUE;
   static u8 au8InputData[100];
   u8 u8EntryCounter = 0;
 
+  /*Show the user's commands they input*/
   if(bWhetherStart)
   {
       DebugLineFeed();
@@ -338,9 +360,8 @@ static void UserApp1Press2Module(void)
       DebugLineFeed();
       DebugPrintf("LED   ON TIME   OFF TIME\n\r------------------------\n\r");
       while( LedDisplayPrintListLine(u8EntryCounter++) )
-      DebugPrintf("\n\r------------------------\n\r");
-      DebugPrintf("Press 1 to Program");
-
+      DebugPrintf("\n\r----------------------\n\r");
+      DebugPrintf("Press 1 to Program\n\r");
       bWhetherStart = FALSE;
   }
 
@@ -348,7 +369,7 @@ static void UserApp1Press2Module(void)
   {
       DebugScanf(au8InputData);
       
-      if(au8InputData[0] == 1)
+      if(au8InputData[0] == '1')
       {
           UserApp1_StateMachine = UserApp1Press1Module;
       }
@@ -356,6 +377,11 @@ static void UserApp1Press2Module(void)
 }
 
 
+/*----------------------------------------------------------------------------------------------------
+Function UserApp1Module()
+Description:
+Help the user see new commands they input.
+*/
 static void UserApp1Module(void)
 {
   static bool bWhetherStart = TRUE;
@@ -366,7 +392,7 @@ static void UserApp1Module(void)
   {
       DebugLineFeed();
       DebugPrintf("Command entry complete.\n\rCommand entered:");
-      DebugPrintNumber(u8Number - 1);
+      DebugPrintNumber(u8Number - 2);
       DebugLineFeed();
       DebugLineFeed();
       DebugPrintf("New USER program:");
