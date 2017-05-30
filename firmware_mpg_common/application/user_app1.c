@@ -309,14 +309,18 @@ static void UserApp1Press1Module(void)
           eYourCommand.u32Time = u32TurnOffTime;
           eYourCommand.eCurrentRate = LED_PWM_100;
           LedDisplayAddCommand(USER_LIST, &eYourCommand);
+          /*Reset the time*/
           u32TurnOnTime = 0;
           u32TurnOffTime = 0;
+          /*Reset the index*/
           u8Index1 = 2;
           u8Index2 = 2;
+          /*Empty the buffer*/
           for(u8 i = 0; i<G_u8DebugScanfCharCount; i++)
           {
               G_au8DebugScanfBuffer[i] = '\0';
           }
+          /*Reset the char counter*/
           G_u8DebugScanfCharCount = 0;
           bStartInput = TRUE;
           bEndInput = FALSE;
@@ -365,10 +369,10 @@ static void UserApp1Press2Module(void)
       bWhetherStart = FALSE;
   }
 
+  /*Return to the input interface*/
   if(G_u8DebugScanfCharCount == 1)
   {
       DebugScanf(au8InputData);
-      
       if(au8InputData[0] == '1')
       {
           UserApp1_StateMachine = UserApp1Press1Module;
@@ -402,10 +406,12 @@ static void UserApp1Module(void)
       while( LedDisplayPrintListLine(u8EntryCounter++) );
       DebugPrintf("\n\r------------------------\n\r");
 
+      /*Empty the buffer*/
       for(u8 i = 0; i < G_u8DebugScanfCharCount; i++)
       {
           G_au8DebugScanfBuffer[i] = '\0';
       }
+      /*Reset the char counter*/
       G_u8DebugScanfCharCount = 0;
       bWhetherStart = FALSE;
   }
