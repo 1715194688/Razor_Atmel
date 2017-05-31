@@ -128,10 +128,10 @@ State Machine Function Definitions
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for input */
-static void UserApp1SM_Idle(void)
-{
+//static void UserApp1SM_Idle(void)
+//{
 
-} /* end UserApp1SM_Idle() */
+//} /* end UserApp1SM_Idle() */
 
 
 /*----------------------------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ static void UserApp1GeneralModule(void)
   static bool bWhetherStart = TRUE;
   u8 au8TopOutput[] = "******************************************************\n\rLED Programming Interface\n\rrPress 1 to program Led command sequence\n\rrPress 2 to show current USER program\n\r******************************************************\n\r";
   /*Store the input content*/
-  static u8 au8InputData[100];
+  static u8 au8InputData[128];
 
   if(bWhetherStart)
   {
@@ -162,6 +162,8 @@ static void UserApp1GeneralModule(void)
       /*Call the UserApp1Press1Module after pressing 1*/
       if(au8InputData[0] == '1')
       {
+          G_u8DebugScanfCharCount = 0;
+          G_au8DebugScanfBuffer[0] = '\0';
           DebugLineFeed();
           LedDisplayStartList();
           UserApp1_StateMachine = UserApp1Press1Module;
@@ -170,6 +172,8 @@ static void UserApp1GeneralModule(void)
       /*Call the UserApp1Press2Module after pressing 2*/
       if(au8InputData[0] == '2')
       {
+          G_u8DebugScanfCharCount = 0;
+          G_au8DebugScanfBuffer[0] = '\0';
           DebugLineFeed();
           UserApp1_StateMachine = UserApp1Press2Module;
       }
@@ -177,6 +181,8 @@ static void UserApp1GeneralModule(void)
       /*Remind the user to press 1 or 2*/
       else if(au8InputData[0] != '1' && au8InputData[0] != '2')
       {
+          G_u8DebugScanfCharCount = 0;
+          G_au8DebugScanfBuffer[0] = '\0';
           DebugLineFeed();
           DebugPrintf("What you input is invalid, press 1 or 2 please");
           DebugLineFeed();
@@ -270,12 +276,12 @@ static void UserApp1Press1Module(void)
               u8Index2 = u8Index1;
           }
 
-          else
+          else if(G_au8DebugScanfBuffer[u8Index1] != '-')
           {
               if(u8Index2 == u8Index1)
               {
                   /*Get the TurnOnTime number you input*/
-                  u32TurnOnTime = u32TurnOnTime*10 + (G_au8DebugScanfBuffer[u8Index1]-'0');
+                  u32TurnOnTime = u32TurnOnTime*10 + (G_au8DebugScanfBuffer[u8Index1] - '0');
                   u8Index1++;
               }
               u8Index2 = G_u8DebugScanfCharCount - 1;
@@ -309,10 +315,10 @@ static void UserApp1Press1Module(void)
           eYourCommand.u32Time = u32TurnOffTime;
           eYourCommand.eCurrentRate = LED_PWM_100;
           LedDisplayAddCommand(USER_LIST, &eYourCommand);
-          /*Reset the time*/
+          /*Reset the on and off time*/
           u32TurnOnTime = 0;
           u32TurnOffTime = 0;
-          /*Reset the index*/
+          /*Reset two indexes*/
           u8Index1 = 2;
           u8Index2 = 2;
           /*Empty the buffer*/
@@ -351,7 +357,7 @@ Help to see the current program.
 static void UserApp1Press2Module(void)
 {
   static bool bWhetherStart = TRUE;
-  static u8 au8InputData[100];
+  static u8 au8InputData[128];
   u8 u8EntryCounter = 0;
 
   /*Show the user's commands they input*/
@@ -389,7 +395,7 @@ Help the user see new commands they input.
 static void UserApp1Module(void)
 {
   static bool bWhetherStart = TRUE;
-  static u8 au8InputData[100];
+  static u8 au8InputData[128];
   u8 u8EntryCounter = 0;
 
   if(bWhetherStart)
@@ -444,10 +450,10 @@ static void UserApp1SM_Error(void)
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* State to sit in if init failed */
-static void UserApp1SM_FailedInit(void)
-{
+//static void UserApp1SM_FailedInit(void)
+//{
     
-} /* end UserApp1SM_FailedInit() */
+//} /* end UserApp1SM_FailedInit() */
 
 
 /*--------------------------------------------------------------------------------------------------------------------*/
