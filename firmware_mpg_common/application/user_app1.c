@@ -193,7 +193,7 @@ Help the user input commands they want.
 */
 static void UserApp1Press1Module(void)
 {
-  static bool bError = FALSE;
+  //static bool bError = FALSE;
   static bool bWhetherStart = TRUE;
   static bool bStartInput = TRUE;
   static bool bEndInput = FALSE;
@@ -435,10 +435,17 @@ static void UserApp1Module(void)
 
   if(G_u8DebugScanfCharCount == 1)
   {
+      //G_au8DebugScanfBuffer[0] = '\0';
+      //G_u8DebugScanfCharCount = 0;
       DebugScanf(au8InputData);
-      if(au8InputData[0] == '1')
+      if(au8InputData[0] == '2')
       {
           UserApp1_StateMachine = UserApp1Press2Module;
+      }
+
+      if(au8InputData[0] == '1')
+      {
+          UserApp1_StateMachine = UserApp1Press1Module;
       }
   }
 }
