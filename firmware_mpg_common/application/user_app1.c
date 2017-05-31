@@ -144,7 +144,7 @@ static void UserApp1GeneralModule(void)
 {
   /*Determine whether the program is running*/
   static bool bWhetherStart = TRUE;
-  u8 au8TopOutput[] = "******************************************************\n\rLED Programming Interface\n\rrPress 1 to program Led command sequence\n\rrPress 2 to show current USER program\n\r******************************************************\n\r";
+  u8 au8TopOutput[] = "******************************************************\n\rLED Programming Interface\n\rPress 1 to program Led command sequence\n\rPress 2 to show current USER program\n\r******************************************************\n\r";
   /*Store the input content*/
   static u8 au8InputData[128];
 
@@ -162,8 +162,6 @@ static void UserApp1GeneralModule(void)
       /*Call the UserApp1Press1Module after pressing 1*/
       if(au8InputData[0] == '1')
       {
-          G_u8DebugScanfCharCount = 0;
-          G_au8DebugScanfBuffer[0] = '\0';
           DebugLineFeed();
           LedDisplayStartList();
           UserApp1_StateMachine = UserApp1Press1Module;
@@ -172,8 +170,6 @@ static void UserApp1GeneralModule(void)
       /*Call the UserApp1Press2Module after pressing 2*/
       if(au8InputData[0] == '2')
       {
-          G_u8DebugScanfCharCount = 0;
-          G_au8DebugScanfBuffer[0] = '\0';
           DebugLineFeed();
           UserApp1_StateMachine = UserApp1Press2Module;
       }
@@ -181,8 +177,6 @@ static void UserApp1GeneralModule(void)
       /*Remind the user to press 1 or 2*/
       else if(au8InputData[0] != '1' && au8InputData[0] != '2')
       {
-          G_u8DebugScanfCharCount = 0;
-          G_au8DebugScanfBuffer[0] = '\0';
           DebugLineFeed();
           DebugPrintf("What you input is invalid, press 1 or 2 please");
           DebugLineFeed();
@@ -199,6 +193,7 @@ Help the user input commands they want.
 */
 static void UserApp1Press1Module(void)
 {
+  static bool bError = FALSE;
   static bool bWhetherStart = TRUE;
   static bool bStartInput = TRUE;
   static bool bEndInput = FALSE;
@@ -210,7 +205,6 @@ static void UserApp1Press1Module(void)
 
   if(bWhetherStart)
   {
-      DebugLineFeed();
       DebugLineFeed();
       /*Describe the rule of the command*/
       DebugPrintf("Enter commands as LED-ONTIME-OFFTIME and press Enter\n\rTime is in milliseconds, max 100commands\n\rLED colors:R,O,Y,G,C,B,P,W\n\rExample:R-100-200(Red on at 100ms and off at 200 ms)\n\rPress Enter on blank line to end\n\r1:");
@@ -258,6 +252,18 @@ static void UserApp1Press1Module(void)
       {
           eYourCommand.eLED = WHITE;
       }
+
+      /*else
+      {
+          bError = TRUE;
+          if(bError)
+          {
+              DebugLineFeed();
+              DebugLineFeed();
+              DebugPrintf("This is not the valid LED !");
+              bError = FALSE;
+          }
+      }*/
   }
 
   /*Set the moment when the LED lights are turned on*/
@@ -368,13 +374,18 @@ static void UserApp1Press2Module(void)
       DebugPrintf("Current USER Program:");
       DebugLineFeed();
       DebugLineFeed();
-      DebugPrintf("LED   ON TIME   OFF TIME\n\r------------------------\n\r");
+      DebugPrintf("LED  ON TIME   OFF TIME\n\r-----------------------\n\r");
       while( LedDisplayPrintListLine(u8EntryCounter++) )
-      DebugPrintf("\n\r----------------------\n\r");
+      DebugPrintf("\n\r---------------------\n\r");
       DebugPrintf("Press 1 to Program\n\r");
       bWhetherStart = FALSE;
   }
 
+  for(u8 i = 0; i < G_u8DebugScanfCharCount; i++)
+  {
+      G_au8DebugScanfBuffer[i] = '\0';
+  }
+  G_u8DebugScanfCharCount = 0;
   /*Return to the input interface*/
   if(G_u8DebugScanfCharCount == 1)
   {
@@ -408,9 +419,9 @@ static void UserApp1Module(void)
       DebugPrintf("New USER program:");
       DebugLineFeed();
       DebugLineFeed();
-      DebugPrintf("LED   ON TIME   OFF TIME\n\r------------------------\n\r");
+      DebugPrintf("LED  ON TIME   OFF TIME\n\r-----------------------\n\r");
       while( LedDisplayPrintListLine(u8EntryCounter++) );
-      DebugPrintf("\n\r------------------------\n\r");
+      DebugPrintf("\n\r-----------------------\n\r");
 
       /*Empty the buffer*/
       for(u8 i = 0; i < G_u8DebugScanfCharCount; i++)
