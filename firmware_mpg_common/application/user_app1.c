@@ -303,7 +303,7 @@ static void UserApp1Press1Module(void)
           {
               if(u8Index1 == u8Index2)
               {
-                  u32TurnOffTime = u32TurnOffTime*10+(G_au8DebugScanfBuffer[u8Index1]-'0');
+                  u32TurnOffTime = u32TurnOffTime*10 + (G_au8DebugScanfBuffer[u8Index1]-'0');
                   u8Index1++;
               }
               u8Index2 = G_u8DebugScanfCharCount - 1;
@@ -381,11 +381,6 @@ static void UserApp1Press2Module(void)
       bWhetherStart = FALSE;
   }
 
-  for(u8 i = 0; i < G_u8DebugScanfCharCount; i++)
-  {
-      G_au8DebugScanfBuffer[i] = '\0';
-  }
-  G_u8DebugScanfCharCount = 0;
   /*Return to the input interface*/
   if(G_u8DebugScanfCharCount == 1)
   {
@@ -435,18 +430,16 @@ static void UserApp1Module(void)
 
   if(G_u8DebugScanfCharCount == 1)
   {
-      //G_au8DebugScanfBuffer[0] = '\0';
-      //G_u8DebugScanfCharCount = 0;
       DebugScanf(au8InputData);
       if(au8InputData[0] == '2')
       {
           UserApp1_StateMachine = UserApp1Press2Module;
       }
 
-      if(au8InputData[0] == '1')
+      /*if(au8InputData[0] == '1')
       {
           UserApp1_StateMachine = UserApp1Press1Module;
-      }
+      }*/
   }
 }
 
