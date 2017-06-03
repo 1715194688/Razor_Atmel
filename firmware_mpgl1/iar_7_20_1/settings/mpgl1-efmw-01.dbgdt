@@ -82,7 +82,7 @@
           
           
           
-        <item>G_u32SystemTime1ms</item><item>G_u32SystemTime1s</item><item>G_u8DebugScanfCharCount</item><item>au8InputData</item><item>G_au8DebugScanfBuffer</item><item></item></expressions>
+        <item>G_u32SystemTime1ms</item><item>G_u32SystemTime1s</item><item>G_u8DebugScanfCharCount</item><item>au8InputData</item><item>G_au8DebugScanfBuffer</item><item/></expressions>
         <col-names>
           
           

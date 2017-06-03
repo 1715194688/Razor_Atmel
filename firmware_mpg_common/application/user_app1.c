@@ -48,7 +48,7 @@ Variable names shall start with "UserApp1_" and be declared as static.
 ***********************************************************************************************************************/
 static fnCode_type UserApp1_StateMachine;            /* The state machine function pointer */
 //static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
-static u8 u8Number = 2;
+static u8 u8CommandNumber = 2;
 
 /**********************************************************************************************************************
 Function Definitions
@@ -159,7 +159,7 @@ static void UserApp1GeneralModule(void)
   {
       DebugScanf(au8InputData);
 
-      /*Call the UserApp1Press1Module after pressing 1*/
+      /*Enter the input command module after pressing 1*/
       if(au8InputData[0] == '1')
       {
           DebugLineFeed();
@@ -167,14 +167,14 @@ static void UserApp1GeneralModule(void)
           UserApp1_StateMachine = UserApp1Press1Module;
       }
 
-      /*Call the UserApp1Press2Module after pressing 2*/
+      /*Enter the current command module after pressing 2*/
       if(au8InputData[0] == '2')
       {
           DebugLineFeed();
           UserApp1_StateMachine = UserApp1Press2Module;
       }
 
-      /*Remind the user to press 1 or 2*/
+      /*Remind the user to press 1 or 2 to enter different modes*/
       else if(au8InputData[0] != '1' && au8InputData[0] != '2')
       {
           DebugLineFeed();
@@ -193,7 +193,7 @@ Help the user input commands they want.
 */
 static void UserApp1Press1Module(void)
 {
-  //static bool bError = FALSE;
+  static bool bError = TRUE;
   static bool bWhetherStart = TRUE;
   static bool bStartInput = TRUE;
   static bool bEndInput = FALSE;
@@ -215,55 +215,60 @@ static void UserApp1Press1Module(void)
   {
       if(G_au8DebugScanfBuffer[0] == 'R' || G_au8DebugScanfBuffer[0] == 'r')
       {
+          bError = FALSE;
           eYourCommand.eLED = RED;
       }
 
       if(G_au8DebugScanfBuffer[0] == 'O' || G_au8DebugScanfBuffer[0] == 'o')
       {
+          bError = FALSE;
           eYourCommand.eLED = ORANGE;
       }
 
       if(G_au8DebugScanfBuffer[0] == 'Y' || G_au8DebugScanfBuffer[0] == 'y')
       {
+          bError = FALSE;
           eYourCommand.eLED = YELLOW;
       }
 
       if(G_au8DebugScanfBuffer[0] == 'G' || G_au8DebugScanfBuffer[0] == 'g')
       {
+          bError = FALSE;
           eYourCommand.eLED = GREEN;
       }
 
       if(G_au8DebugScanfBuffer[0] == 'C' || G_au8DebugScanfBuffer[0] == 'c')
       {
+          bError = FALSE;
           eYourCommand.eLED = CYAN;
       }
 
       if(G_au8DebugScanfBuffer[0] == 'B' || G_au8DebugScanfBuffer[0] == 'b')
       {
+          bError = FALSE;
           eYourCommand.eLED = BLUE;
       }
 
       if(G_au8DebugScanfBuffer[0] == 'P' || G_au8DebugScanfBuffer[0] == 'p')
       {
+          bError = FALSE;
           eYourCommand.eLED = PURPLE;
       }
 
       if(G_au8DebugScanfBuffer[0] == 'W' || G_au8DebugScanfBuffer[0] == 'w')
       {
+          bError = FALSE;
           eYourCommand.eLED = WHITE;
       }
 
-      /*else
+      /*If you input the wrong leds code, remind you to enter right leds code*/
+      else if(bError)
       {
-          bError = TRUE;
-          if(bError)
-          {
-              DebugLineFeed();
-              DebugLineFeed();
-              DebugPrintf("This is not the valid LED !");
-              bError = FALSE;
-          }
-      }*/
+          bError = FALSE;
+          DebugLineFeed();
+          DebugLineFeed();
+          DebugPrintf("This is not the valid LED ! Please input R,O,Y,G,C,B,P or W (Case insensitive)");
+      }
   }
 
   /*Set the moment when the LED lights are turned on*/
@@ -295,6 +300,7 @@ static void UserApp1Press1Module(void)
       }
   }
 
+  /*Set the moment when the LED lights are turned off*/
   if(bEndInput)
   {
       if(G_au8DebugScanfBuffer[u8Index1] != '\r')
@@ -303,6 +309,7 @@ static void UserApp1Press1Module(void)
           {
               if(u8Index1 == u8Index2)
               {
+                  /*Get the TurnOnTime number you input*/
                   u32TurnOffTime = u32TurnOffTime*10 + (G_au8DebugScanfBuffer[u8Index1]-'0');
                   u8Index1++;
               }
@@ -334,15 +341,19 @@ static void UserApp1Press1Module(void)
           }
           /*Reset the char counter*/
           G_u8DebugScanfCharCount = 0;
+          /*Reset the Boolean quantities*/
           bStartInput = TRUE;
           bEndInput = FALSE;
           DebugLineFeed();
-          DebugPrintNumber(u8Number);
+          /*Output command sort sequence number*/
+          DebugPrintNumber(u8CommandNumber);
           DebugPrintf(":"); 
-          u8Number++;
+          /*For each correct command, make u8CommandNumber add 1 itself*/
+          u8CommandNumber++;
       }
   }
   
+  /*The empty line presses enter and ends the command output mode, displaying the current command*/
   if(G_au8DebugScanfBuffer[0] =='\r')
   {
       UserApp1_StateMachine = UserApp1Module;
@@ -408,7 +419,7 @@ static void UserApp1Module(void)
   {
       DebugLineFeed();
       DebugPrintf("Command entry complete.\n\rCommand entered:");
-      DebugPrintNumber(u8Number - 2);
+      DebugPrintNumber(u8CommandNumber - 2);
       DebugLineFeed();
       DebugLineFeed();
       DebugPrintf("New USER program:");
@@ -431,6 +442,7 @@ static void UserApp1Module(void)
   if(G_u8DebugScanfCharCount == 1)
   {
       DebugScanf(au8InputData);
+      /*Look the current commands*/
       if(au8InputData[0] == '2')
       {
           UserApp1_StateMachine = UserApp1Press2Module;
