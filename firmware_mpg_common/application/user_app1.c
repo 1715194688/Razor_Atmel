@@ -88,10 +88,10 @@ Promises:
 void UserApp1Initialize(void)
 {
  
-  /* If good initialization, set state to Idle */
+  /* If good initialization, set state to state1 */
   if( 1 )
   {
-    UserApp1_StateMachine = UserApp1SM_Idle;
+    UserApp1_StateMachine = UserApp1SM_state1;
   }
   else
   {
@@ -133,12 +133,152 @@ State Machine Function Definitions
 **********************************************************************************************************************/
 
 /*-------------------------------------------------------------------------------------------------------------------*/
-/* Wait for ??? */
-static void UserApp1SM_Idle(void)
+
+
+/*----------------------------------------------------------------------------------------------------------------------
+Function UserApp1SM_state1()
+
+Description:
+Some Debug, LCD, LED and buzzer orders in the first state.
+*/
+static void UserApp1SM_state1(void)
 {
-  
-} /* end UserApp1SM_Idle() */
-    
+  static bool bDebug1 = TRUE;
+  static u8 au8InPut[1];
+  u8 au8DebugOut1[] = "Entering state 1";
+  u8 au8State1[] = "STATE 1";
+
+  /* Display "Entering state 1" once in Tera Term */
+  if(bDebug1)
+  {
+      DebugPrintf(au8DebugOut1);
+      DebugLineFeed();
+      bDebug1 = FALSE;
+  }
+
+  /*  Display "STATE 1" on the LCD screen and make the LCD screen purple */
+  LCDCommand(LCD_CLEAR_CMD);
+  LCDMessage(LINE1_START_ADDR, au8State1);
+  LedOff(LCD_GREEN);
+  LedPWM(LCD_RED, LED_PWM_50);
+  LedPWM(LCD_BLUE, LED_PWM_50);
+
+  /* Turn off the green, yellow, orange and red LEDs. Turn on the white, purple, blue and cyan LEDs */
+  LedOff(GREEN);
+  LedOff(YELLOW);
+  LedOff(ORANGE);
+  LedOff(RED);
+  LedOn(WHITE);
+  LedOn(PURPLE);
+  LedOn(BLUE);
+  LedOn(CYAN);
+
+  /* Turn off the buzzer */
+  PWMAudioOff(BUZZER1);
+
+  /* Change to state2 */
+  DebugScanf(au8InPut);
+  if(WasButtonPressed(BUTTON2))
+  {
+      ButtonAcknowledge(BUTTON2);
+      UserApp1_StateMachine = UserApp1SM_state2;
+  }
+
+  if(au8InPut[0] == '2')
+  {
+      DebugLineFeed();
+      UserApp1_StateMachine = UserApp1SM_state2;
+  }
+
+}/* end UserApp1SM_state1 */
+
+
+/*----------------------------------------------------------------------------------------------------------------------
+Function UserApp1SM_state2()
+
+Description:
+Some Debug, LCD, LED and buzzer orders in the second state.
+*/
+static void UserApp1SM_state2(void)
+{
+  static bool bDebug2 = TRUE;
+  static u8 au8InPut[1];
+  static u16 u16Counter = 0;
+  //static u16 u16Counter1 = 0;
+  //static u16 u16Counter2 = 0;
+  u8 au8DebugOut[] = "Entering state 2";
+  u8 au8State[] = "STATE 2";
+
+  u16Counter++;
+
+  /* Display "Entering state 2" once in Tera Term */
+  if(bDebug2)
+  {
+      DebugPrintf(au8DebugOut);
+      DebugLineFeed();
+      bDebug2 = FALSE;
+  }
+
+  /* Display "STATE 2" on the LCD screen and make the LCD screen orange */
+  LCDCommand(LCD_CLEAR_CMD);
+  LCDMessage(LINE1_START_ADDR, au8State);
+  LedOff(LCD_BLUE);
+  LedPWM(LCD_RED, LED_PWM_65);
+  LedPWM(LCD_GREEN, LED_PWM_35);
+
+  /* Turn off the white, purple, blue and cyan LEDs. Make the green, yellow, orange and red LEDs blink */
+  LedOff(WHITE);
+  LedOff(PURPLE);
+  LedOff(BLUE);
+  LedOff(CYAN);
+  LedBlink(GREEN, LED_1HZ);
+  LedBlink(YELLOW, LED_2HZ);
+  LedBlink(ORANGE, LED_4HZ);
+  LedBlink(RED, LED_8HZ);
+
+  /* Let the buzzer ring at 200 Hz in 100ms and turn off it until 1s */
+  if(u16Counter < 100)
+  {
+      PWMAudioOn(BUZZER1);
+      PWMAudioSetFrequency(BUZZER1, 200);
+  }
+  else if(u16Counter > 100 && u16Counter < 1000)
+  {
+      PWMAudioOff(BUZZER1);
+  }
+
+      /*u16Counter2++;
+      if(u16Counter2 == 900)
+      {
+          u16Counter2 = 0;
+          u16Counter1++;
+          PWMAudioOn(BUZZER1);
+          PWMAudioSetFrequency(BUZZER1, 200);
+          if(u16Counter1 == 100)
+          {
+              u16Counter1 = 0;
+              //u16Counter2++;
+              PWMAudioOff(BUZZER1);
+          }
+      }*/
+
+  /* Change to state1 */
+  DebugScanf(au8InPut);
+  if(WasButtonPressed(BUTTON1))
+  {
+      ButtonAcknowledge(BUTTON1);
+      UserApp1_StateMachine = UserApp1SM_state1;
+  }
+
+  if(au8InPut[0] == '1')
+  {
+      DebugLineFeed();
+      UserApp1_StateMachine = UserApp1SM_state1;
+  }
+
+} /* end UserApp1SM_state2() */
+
+
 #if 0
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Handle an error */
