@@ -201,7 +201,7 @@ static void UserApp1SM_Idle(void)
   static u8 au8TestMessage[] = {0, 0, 0, 0, 0xA5, 0, 0, 0};
   u8 au8DataContent[] = "xxxxxxxxxxxxxxxx";
   
-  /* Check all the buttons and update au8TestMessage according to the button state */ 
+  /* Check all the buttons and update au8TestMessage according to the button state */
   au8TestMessage[0] = 0x00;
   if( IsButtonPressed(BUTTON0) )
   {
@@ -240,13 +240,18 @@ static void UserApp1SM_Idle(void)
         au8DataContent[2 * i + 1] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[i] % 16);
       }
 
+    /*if(au8DataContent[0] == 0x00 && au8DataContent[1] == 0x01)
+    {
+      LedOn(WHITE);
+    }*/
+
 #ifdef EIE1
       LCDMessage(LINE2_START_ADDR, au8DataContent);
 #endif /* EIE1 */
-      
+
 #ifdef MPG2
 #endif /* MPG2 */
-      
+
     }
     else if(G_eAntApiCurrentMessageClass == ANT_TICK)
     {
@@ -263,7 +268,7 @@ static void UserApp1SM_Idle(void)
       AntQueueBroadcastMessage(ANT_CHANNEL_USERAPP, au8TestMessage);
     }
   } /* end AntReadData() */
-  
+
 } /* end UserApp1SM_Idle() */
 
 
