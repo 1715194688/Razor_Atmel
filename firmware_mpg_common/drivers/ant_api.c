@@ -570,7 +570,7 @@ Requires:
 Promises:
   - Returns TRUE if the entry is added successfully.
 */
-bool AntQueueBroadcastMessage(AntChannelNumberType eChannel_, u8 *pu8Data_)
+bool AntQueueBroadcastMessage(AntChannelNumberType eChannel_, u8 *pu8Data_)¡¤
 {
   /* Update the dynamic message data */
   G_au8AntBroadcastDataMessage[2] = eChannel_;
