@@ -136,7 +136,7 @@ Queues a request to open a scanning channel. Channel 0 setup parameters are used
 but note that all channel resources are used by a scanning channel.  Trying to
 open a scanning channel if any other channel is open will fail.
 
-Returns TRUE if message is successfully queued - this can be ignored or checked.  
+Returns TRUE if message is successfully queued - this can be ignored or checked.
 Application should monitor AntRadioStatusChannel() for actual channel status.
 e.g.
 AntChannelStatusType eAntCurrentState;
@@ -229,7 +229,7 @@ u8 G_au8AntApiCurrentMessageBytes[ANT_APPLICATION_MESSAGE_BYTES];       /* Array
 AntExtendedDataType G_sAntApiCurrentMessageExtData;                     /* Extended data struct for the current message */
 
 /*----------------------------------------------------------------------------*/
-/* Existing variables (defined in other files -- should all contain the "extern" keyword) 
+/* Existing variables (defined in other files -- should all contain the "extern" keyword)
 and indicate what file the variable is defined in. */
 extern u32 G_u32SystemFlags;                                  /* From main.c */
 extern u32 G_u32ApplicationFlags;                             /* From main.c */
@@ -570,7 +570,7 @@ Requires:
 Promises:
   - Returns TRUE if the entry is added successfully.
 */
-bool AntQueueBroadcastMessage(AntChannelNumberType eChannel_, u8 *pu8Data_)¡¤
+bool AntQueueBroadcastMessage(AntChannelNumberType eChannel_, u8 *pu8Data_)
 {
   /* Update the dynamic message data */
   G_au8AntBroadcastDataMessage[2] = eChannel_;
