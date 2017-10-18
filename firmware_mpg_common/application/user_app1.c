@@ -240,11 +240,6 @@ static void UserApp1SM_Idle(void)
         au8DataContent[2 * i + 1] = HexToASCIICharUpper(G_au8AntApiCurrentMessageBytes[i] % 16);
       }
 
-    /*if(au8DataContent[0] == 0x00 && au8DataContent[1] == 0x01)
-    {
-      LedOn(WHITE);
-    }*/
-
 #ifdef EIE1
       LCDMessage(LINE2_START_ADDR, au8DataContent);
 #endif /* EIE1 */
@@ -255,7 +250,7 @@ static void UserApp1SM_Idle(void)
     }
     else if(G_eAntApiCurrentMessageClass == ANT_TICK)
     {
-     /* Update and queue the new message data */
+     /* Update and queue the new message data */ANT_TICK_MSG_EVENT_CODE_INDEX    EVENT_TRANSFER_TX_FAILED
       au8TestMessage[7]++;
       if(au8TestMessage[7] == 0)
       {
