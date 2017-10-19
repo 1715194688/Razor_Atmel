@@ -198,6 +198,8 @@ static void UserApp1SM_AntChannelAssign()
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+  u8 au8Index[] = "WRONG MESG TRUE MESG";
+  static u8 u8IfFail;
   static u8 au8TestMessage[] = {0, 0, 0, 0, 0xA5, 0, 0, 0};
   u8 au8DataContent[] = "xxxxxxxxxxxxxxxx";
   
@@ -250,7 +252,20 @@ static void UserApp1SM_Idle(void)
     }
     else if(G_eAntApiCurrentMessageClass == ANT_TICK)
     {
-     /* Update and queue the new message data */ANT_TICK_MSG_EVENT_CODE_INDEX    EVENT_TRANSFER_TX_FAILED
+      u8IfFail = G_au8AntApiCurrentMessageBytes[ANT_TICK_MSG_EVENT_CODE_INDEX];
+      if(u8IfFail == EVENT_TRANSFER_TX_FAILED)
+      {
+        au8TestMessage[3]++;
+        if(au8TestMessage[3] == 0)
+        {
+          au8TestMessage[2]++;
+          if(au8TestMessage[2] == 0)
+          {
+            au8TestMessage[1]++;
+          }
+        }
+      }
+     /* Update and queue the new message data */
       au8TestMessage[7]++;
       if(au8TestMessage[7] == 0)
       {
@@ -260,7 +275,11 @@ static void UserApp1SM_Idle(void)
           au8TestMessage[5]++;
         }
       }
-      AntQueueBroadcastMessage(ANT_CHANNEL_USERAPP, au8TestMessage);
+      LCDClearChars(LINE1_START_ADDR,LINE1_END_ADDR);
+      LCDClearChars(LINE2_START_ADDR,LINE2_END_ADDR);
+      LCDMessage(LINE1_START_ADDR,au8Index);
+      LCDMessage(LINE2_START_ADDR,au8TestMessage);
+      AntQueueAcknowledgedMessage(ANT_CHANNEL_USERAPP, au8TestMessage);
     }
   } /* end AntReadData() */
 
