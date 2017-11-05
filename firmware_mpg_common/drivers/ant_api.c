@@ -229,7 +229,7 @@ AntExtendedDataType G_sAntApiCurrentMessageExtData;                     /* Exten
 
 
 /*----------------------------------------------------------------------------*/
-/* Existing variables (defined in other files -- should all contain the "extern" keyword) 
+/* Existing variables (defined in other files -- should all contain the "extern" keyword)
 and indicate what file the variable is defined in. */
 extern u32 G_u32SystemFlags;                                  /* From main.c */
 extern u32 G_u32ApplicationFlags;                             /* From main.c */
@@ -749,23 +749,23 @@ static void AntApiSM_Idle(void)
 /* Send all configuration messages to ANT to fully assign the channel.
 The selected channel has already been verified unconfigured, and all required setup
 messages are ready to go.  */
-static void  AntApiSM_AssignChannel(void)          
+static void  AntApiSM_AssignChannel(void)
 {
   static u8 u8CurrentMessageToSend = 0;
   static u8 u8CurrentMesssageId = 0;
   static bool bMessageInProgress = FALSE;
-  
+
   /* Queue the next message if it's time */
   if(bMessageInProgress == FALSE)
   {
-    u8CurrentMesssageId = *(AntApi_apu8AntAssignChannel[u8CurrentMessageToSend] + BUFFER_INDEX_MESG_ID); 
+    u8CurrentMesssageId = *(AntApi_apu8AntAssignChannel[u8CurrentMessageToSend] + BUFFER_INDEX_MESG_ID);
     AntQueueOutgoingMessage(AntApi_apu8AntAssignChannel[u8CurrentMessageToSend]);
     bMessageInProgress = TRUE;
   }
-  
+
   /* Check message status */
   if( u8CurrentMesssageId == G_stMessageResponse.u8MessageNumber )
-  { 
+  {
     if(G_stMessageResponse.u8ResponseCode == RESPONSE_NO_ERROR)
     {
       /* Increment message pointer and check if complete */
@@ -806,6 +806,17 @@ static void  AntApiSM_AssignChannel(void)
   }
   
 } /* end AntApiSM_AssignChannel() */
+
+
+/*static void AntGetdBmAscii(s8 s8Data)
+{
+  u8 au8Temp[7] = {'-',0,0,'d','B','m','\0'};
+
+  u8 u8Temp = abs(s8Data);
+  au8Temp[1] = u8Temp/10 + 48;
+  au8Temp[2] = u8Temp%10 + 48;
+  LCDMessage(LINE1_END_ADDR-7, au8Temp);
+}*/
 
 
 #if 0

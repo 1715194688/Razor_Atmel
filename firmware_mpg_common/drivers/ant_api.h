@@ -97,10 +97,11 @@ void AntApiRunActiveState(void);
 /***********************************************************************************************************************
 State Machine Declarations
 ***********************************************************************************************************************/
-static void AntApiSM_Idle(void);    
-static void  AntApiSM_AssignChannel(void);       
+static void AntApiSM_Idle(void);
+static void  AntApiSM_AssignChannel(void);
 
-static void AntApiSM_Error(void);         
-static void AntApiSM_FailedInit(void);        
+static void AntApiSM_Error(void);
+static void AntApiSM_FailedInit(void);
+//static void AntGetdBmAscii(s8 s8Data);
 
 #endif /* __ANT_API_H */
