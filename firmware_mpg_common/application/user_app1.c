@@ -318,7 +318,17 @@ static void UserApp1SM_Slave(void)
         }
         if(s8RssiChannel1 == -50)
         {
+          /*LedOff(WHITE);
+          LedOff(PURPLE);
+          LedOff(BLUE);
+          LedOff(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);*/
+
           //u8StartCounter++;
+
           /*LCDCommand(LCD_CLEAR_CMD);
           LCDMessage(LINE1_START_ADDR, au8SlaveEndSeek);
           LedBlink(WHITE, LED_2HZ);
@@ -345,17 +355,18 @@ static void UserApp1SM_Slave(void)
 
 static void UserApp1SM_Master(void)
 {
-u8 au8SlaveEndSeek[] = "Found You!";
-          LCDCommand(LCD_CLEAR_CMD);
-          LCDMessage(LINE1_START_ADDR, au8SlaveEndSeek);
-          LedBlink(WHITE, LED_2HZ);
-          LedBlink(PURPLE, LED_2HZ);
-          LedBlink(BLUE, LED_2HZ);
-          LedBlink(CYAN, LED_2HZ);
-          LedBlink(GREEN, LED_2HZ);
-          LedBlink(YELLOW, LED_2HZ);
-          LedBlink(ORANGE, LED_2HZ);
-          LedBlink(RED, LED_2HZ);
+  u8 au8SlaveEndSeek[] = "Found You!";
+  
+  LCDCommand(LCD_CLEAR_CMD);
+  LCDMessage(LINE1_START_ADDR, au8SlaveEndSeek);
+  LedBlink(WHITE, LED_2HZ);
+  LedBlink(PURPLE, LED_2HZ);
+  LedBlink(BLUE, LED_2HZ);
+  LedBlink(CYAN, LED_2HZ);
+  LedBlink(GREEN, LED_2HZ);
+  LedBlink(YELLOW, LED_2HZ);
+  LedBlink(ORANGE, LED_2HZ);
+  LedBlink(RED, LED_2HZ);
 
 
 
