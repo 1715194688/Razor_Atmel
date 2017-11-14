@@ -67,7 +67,7 @@ Variable names shall start with "UserApp1_" and be declared as static.
 //static u32 UserApp1_u32TickMsgCount = 0;             /* Counts the number of ANT_TICK packets received */
 
 static fnCode_type UserApp1_StateMachine;            /* The state machine function pointer */
-static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
+//static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
 
 static s8 s8RssiChannel1;                            /* Record the current RSSI level */
 
@@ -131,7 +131,7 @@ void UserApp1Initialize(void)
   if( AntAssignChannel(&sAntSetupData) )
   {
     /* Channel assignment is queued so start timer */
-    UserApp1_u32Timeout = G_u32SystemTime1ms;
+    //UserApp1_u32Timeout = G_u32SystemTime1ms;
     //LedOn(RED);
 
     UserApp1_StateMachine = UserApp1SM_Slave;
@@ -188,7 +188,7 @@ static void UserApp1SM_Slave(void)
   u8 au8StartCounter[2] = {0,0};
   u8 u8StartCounter = 10;
   u8 u8BuzzerCount = 0;
-  u8 u8msCounter = 0;
+  u8 u16msCounter = 0;
   u8 au8SlaveBeforeSeek[] = "Seeker";
   u8 au8SlaveStartSeek_1[] = "Ready or not";
   u8 au8SlaveStartSeek_2[] = "Here I come!";
@@ -199,7 +199,7 @@ static void UserApp1SM_Slave(void)
   {
     ButtonAcknowledge(BUTTON0);
     bStartCount = TRUE;
-    AntOpenChannelNumber(ANT_CHANNEL_USERAPP);
+    //AntOpenChannelNumber(ANT_CHANNEL_USERAPP);
     
     LCDCommand(LCD_CLEAR_CMD);
     LCDMessage(LINE1_START_ADDR, au8SlaveBeforeSeek);
@@ -207,10 +207,10 @@ static void UserApp1SM_Slave(void)
   /* Still useless */
   if(bStartCount)
   {
-    u8msCounter++;
-    if(u8msCounter == 1000)
+    u16msCounter++;
+    if(u16msCounter == 1000)
     {
-      u8msCounter = 0;
+      u16msCounter = 0;
       u8StartCounter--;
       au8StartCounter[0] = u8StartCounter/10 + 48;
       au8StartCounter[1] = u8StartCounter%10 +48;
@@ -223,7 +223,7 @@ static void UserApp1SM_Slave(void)
       bStartCount = FALSE;
       u8StartCounter = 10;
       //u8StartCounter++;
-      //AntOpenChannelNumber(ANT_CHANNEL_USERAPP);
+      AntOpenChannelNumber(ANT_CHANNEL_USERAPP);
       LCDCommand(LCD_CLEAR_CMD);
       LCDMessage(LINE1_START_ADDR, au8SlaveStartSeek_1);
       LCDMessage(LINE2_START_ADDR, au8SlaveStartSeek_2);
