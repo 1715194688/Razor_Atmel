@@ -81,6 +81,8 @@ static u8 au8TempMaster[9] = {'M',':','-',0,0,'d','B','m','\0'};
 static u8 au8TempSlave[9] = {'S',':','-',0,0,'d','B','m','\0'};
 static u8 u8TempMaster;
 static u8 u8TempSlave;
+u8 au8WelcomeMessage[] = "Hide and Go Seek!";
+u8 au8Instructions[] = "Press B0 to Start";
 
 
 /**********************************************************************************************************************
@@ -280,7 +282,7 @@ static void UserApp1SM_IfOpen(void)
   if( IsTimeUp(&UserApp1_u32Timeout, 2000) )
   {
     LCDCommand(LCD_CLEAR_CMD);
-    LCDMessage(LINE1_START_ADDR, "Fail to Open channels");
+    LCDMessage(LINE1_START_ADDR, "Fail to Open channel");
     UserApp1_StateMachine = UserApp1SM_Error;
   }
 }
@@ -662,8 +664,8 @@ static void UserApp1SM_Playing(void)
     
     /* Back to the start */
     LCDCommand(LCD_CLEAR_CMD);
-    LCDMessage(LINE1_START_ADDR, UserApp1_au8LcdStartLine1);
-    LCDMessage(LINE2_START_ADDR, UserApp1_au8LcdStartLine2);
+    LCDMessage(LINE1_START_ADDR, au8WelcomeMessage);
+    LCDMessage(LINE2_START_ADDR, au8Instructions);
     
     /* Close channels */
     AntCloseChannelNumber(ANT_CHANNEL_2);
