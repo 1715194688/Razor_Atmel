@@ -67,9 +67,12 @@ Variable names shall start with "UserApp1_" and be declared as static.
 //static u32 UserApp1_u32TickMsgCount = 0;             /* Counts the number of ANT_TICK packets received */
 
 static fnCode_type UserApp1_StateMachine;            /* The state machine function pointer */
-//static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
+static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
 
 static s8 s8RssiChannel1;                            /* Record the current RSSI level */
+
+static AntAssignChannelInfoType sAntSetupMaster;
+static AntAssignChannelInfoType sAntSetupSlave;
 
 
 /**********************************************************************************************************************
@@ -101,46 +104,59 @@ void UserApp1Initialize(void)
 {
   u8 au8WelcomeMessage[] = "Hide and Go Seek!";
   u8 au8Instructions[] = "Press B0 to Start";
-  AntAssignChannelInfoType sAntSetupData;
+  //AntAssignChannelInfoType sAntSetupData;
   
   /* Clear screen and place start messages */
   LCDCommand(LCD_CLEAR_CMD);
   LCDMessage(LINE1_START_ADDR, au8WelcomeMessage);
   LCDMessage(LINE2_START_ADDR, au8Instructions);
 
- /* Configure ANT for this application */
-  sAntSetupData.AntChannel          = ANT_CHANNEL_USERAPP;
-  sAntSetupData.AntChannelType      = ANT_CHANNEL_TYPE_USERAPP;
-  sAntSetupData.AntChannelPeriodLo  = ANT_CHANNEL_PERIOD_LO_USERAPP;
-  sAntSetupData.AntChannelPeriodHi  = ANT_CHANNEL_PERIOD_HI_USERAPP;
+  /* Master (Channel 2) */
+  sAntSetupMaster.AntChannel = ANT_CHANNEL_2;
+  sAntSetupMaster.AntChannelType = CHANNEL_TYPE_MASTER;
+  sAntSetupMaster.AntChannelPeriodLo = ANT_CHANNEL_PERIOD_LO_USERAPP;
+  sAntSetupMaster.AntChannelPeriodHi = ANT_CHANNEL_PERIOD_HI_USERAPP;
   
-  sAntSetupData.AntDeviceIdLo       = ANT_DEVICEID_LO_USERAPP;
-  sAntSetupData.AntDeviceIdHi       = ANT_DEVICEID_HI_USERAPP;
-  sAntSetupData.AntDeviceType       = ANT_DEVICE_TYPE_USERAPP;
-  sAntSetupData.AntTransmissionType = ANT_TRANSMISSION_TYPE_USERAPP;
-  sAntSetupData.AntFrequency        = ANT_FREQUENCY_USERAPP;
-  sAntSetupData.AntTxPower          = ANT_TX_POWER_USERAPP;
+  sAntSetupMaster.AntDeviceIdLo = ANT_DEVICEID_LO_USERAPP;
+  sAntSetupMaster.AntDeviceIdHi = ANT_DEVICEID_HI_USERAPP;
+  sAntSetupMaster.AntDeviceType = ANT_DEVICE_TYPE_USERAPP;
+  sAntSetupMaster.AntTransmissionType = ANT_TRANSMISSION_TYPE_USERAPP;
+  
+  sAntSetupMaster.AntFrequency = ANT_FREQUENCY_USERAPP;
+  sAntSetupMaster.AntTxPower = ANT_TX_POWER_USERAPP;
+  sAntSetupMaster.AntNetwork = ANT_NETWORK_DEFAULT;
 
-  sAntSetupData.AntNetwork = ANT_NETWORK_DEFAULT;
+ /* Configure ANT for this application */
+  sAntSetupSlave.AntChannel          = ANT_CHANNEL_USERAPP;
+  sAntSetupSlave.AntChannelType      = ANT_CHANNEL_TYPE_USERAPP;
+  sAntSetupSlave.AntChannelPeriodLo  = ANT_CHANNEL_PERIOD_LO_USERAPP;
+  sAntSetupSlave.AntChannelPeriodHi  = ANT_CHANNEL_PERIOD_HI_USERAPP;
+  
+  sAntSetupSlave.AntDeviceIdLo       = ANT_DEVICEID_LO_USERAPP;
+  sAntSetupSlave.AntDeviceIdHi       = ANT_DEVICEID_HI_USERAPP;
+  sAntSetupSlave.AntDeviceType       = ANT_DEVICE_TYPE_USERAPP;
+  sAntSetupSlave.AntTransmissionType = ANT_TRANSMISSION_TYPE_USERAPP;
+  
+  sAntSetupSlave.AntFrequency        = ANT_FREQUENCY_USERAPP;
+  sAntSetupSlave.AntTxPower          = ANT_TX_POWER_USERAPP;
+  sAntSetupSlave.AntNetwork = ANT_NETWORK_DEFAULT;
+  
   for(u8 i = 0; i < ANT_NETWORK_NUMBER_BYTES; i++)
   {
-    sAntSetupData.AntNetworkKey[i] = ANT_DEFAULT_NETWORK_KEY;
+    sAntSetupMaster.AntNetworkKey[i] = ANT_DEFAULT_NETWORK_KEY;
+    sAntSetupSlave.AntNetworkKey[i] = ANT_DEFAULT_NETWORK_KEY;
   }
     
+  AntAssignChannel(&sAntSetupMaster);
+  UserApp1_u32Timeout = G_u32SystemTime1ms;
   /* If good initialization, set state to Idle */
-  if( AntAssignChannel(&sAntSetupData) )
+  if( 1 )
   {
-    /* Channel assignment is queued so start timer */
-    //UserApp1_u32Timeout = G_u32SystemTime1ms;
-    //LedOn(RED);
-
-    UserApp1_StateMachine = UserApp1SM_Slave;
+    UserApp1_StateMachine = UserApp1SM_AntConfigureMaster;
   }
   else
   {
-    /* The task isn't properly initialized, so shut it down and don't run */
-    //LedBlink(RED, LED_4HZ);
-
+    /* Stop running */
     UserApp1_StateMachine = UserApp1SM_Error;
   }
 
@@ -178,6 +194,44 @@ State Machine Function Definitions
 **********************************************************************************************************************/
 
 /*-------------------------------------------------------------------------------------------------------------------*/
+static void UserApp1SM_AntConfigureMaster(void)
+{
+  /* Judge if the channel has been confrigured */
+  if(AntRadioStatusChannel(ANT_CHANNEL_2) == ANT_CONFIGURED)
+  {
+    /* Queue configuration of Slave channel */
+    AntAssignChannel(&sAntSetupSlave);
+    UserApp1_u32Timeout = G_u32SystemTime1ms;
+    UserApp1_StateMachine = UserApp1SM_AntConfigureSlave;
+  }
+  
+  /* Check for timeout */
+  if( IsTimeUp(&UserApp1_u32Timeout, ANT_CONFIGURE_TIMEOUT_MS) )
+  {
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, "Master config failed");
+    UserApp1_StateMachine = UserApp1SM_Error;
+  }
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 static void UserApp1SM_Slave(void)
 {
   u8 au8Temp[7] = {'-',0,0,'d','B','m','\0'};
