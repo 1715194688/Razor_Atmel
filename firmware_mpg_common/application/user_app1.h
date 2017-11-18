@@ -77,8 +77,10 @@ static void UserApp1SM_Idle(void);
 //static void UserApp1SM_WaitChannelClose(void);
 static void UserApp1SM_AntConfigureMaster(void);
 static void UserApp1SM_AntConfigureSlave(void);
-static void UserApp1SM_IfOpen(void);
-static void UserApp1SM_Playing(void);
+static void UserApp1SM_OpenToMaster(void);
+static void UserApp1SM_OpenToSlave(void);
+static void UserApp1SM_MasterPlaying(void);
+static void UserApp1SM_SlavePlaying(void);
 static void UserApp1SM_CloseChannels(void);
 
 static void UserApp1SM_Error(void);

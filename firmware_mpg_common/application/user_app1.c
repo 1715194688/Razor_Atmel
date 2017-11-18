@@ -230,7 +230,7 @@ static void UserApp1SM_AntConfigureSlave(void)
   /* Judge if the channel has been configured */
   if(AntRadioStatusChannel(ANT_CHANNEL_1) == ANT_CONFIGURED)
   {
-    /* Update the broadcast message data to send the user's name the go to Idle */
+    /* Update the broadcast message data */
     AntQueueBroadcastMessage(ANT_CHANNEL_2, au8MasterSend);
     AntQueueBroadcastMessage(ANT_CHANNEL_1, au8MasterSend);
 
@@ -242,40 +242,56 @@ static void UserApp1SM_AntConfigureSlave(void)
   {
     LCDCommand(LCD_CLEAR_CMD);
     LCDMessage(LINE1_START_ADDR, "Slave config failed");
-    UserApp1_StateMachine = UserApp1SM_Error;    
+    UserApp1_StateMachine = UserApp1SM_Error;
   }
 }
 
 
 static void UserApp1SM_Idle(void)
 {
+  u8 au8ChooseStatus[] = "Choose one status";
+  u8 au8ChoosePress[] = "B1 Master   B2 Slave";
+
   if(WasButtonPressed(BUTTON0))
   {
     ButtonAcknowledge(BUTTON0);
     
-    /* Open the channels */
+    /* Open the channels and choose one identity */
     AntOpenChannelNumber(ANT_CHANNEL_2);
     AntOpenChannelNumber(ANT_CHANNEL_1);
     
     UserApp1_u32Timeout = G_u32SystemTime1ms;
-    UserApp1_StateMachine = UserApp1SM_IfOpen;
+
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, au8ChooseStatus);
+    LCDMessage(LINE2_START_ADDR, au8ChoosePress);
+  }
+  if(WasButtonPressed(BUTTON1))
+  {
+    UserApp1_StateMachine = UserApp1SM_OpenToMaster;
+  }
+  if(WasButtonPressed(BUTTON2))
+  {
+    UserApp1_StateMachine = UserApp1SM_OpenToSlave;
   }
 }
 
 
-static void UserApp1SM_IfOpen(void)
+static void UserApp1SM_OpenToMaster(void)
 {
+  u8 au8Master[] = "Hider";
   /* Ensure that both channels have opened */
-  if( (AntRadioStatusChannel(ANT_CHANNEL_0) == ANT_OPEN) &&
-      (AntRadioStatusChannel(ANT_CHANNEL_1) == ANT_OPEN) )
+  if( (AntRadioStatusChannel(ANT_CHANNEL_2) == ANT_OPEN) && (AntRadioStatusChannel(ANT_CHANNEL_1) == ANT_OPEN) )
   {
     /* Update LCD and go to main Radio monitoring state */
     LCDCommand(LCD_CLEAR_CMD);
-    LCDMessage(LINE1_START_ADDR, au8TempMaster);
-    LCDMessage(LINE1_START_ADDR+10, au8TempSlave);
+    LCDMessage(LINE1_START_ADDR, au8Master);
+    au8TempMaster[3] = u8TempMaster/10 + 48;
+    au8TempMaster[4] = u8TempMaster%10 + 48;
+    LCDMessage(LINE1_END_ADDR-8, au8TempMaster);
     LCDMessage(LINE2_START_ADDR, au8MasterSend);
-    
-    UserApp1_StateMachine = UserApp1SM_Playing;
+
+    UserApp1_StateMachine = UserApp1SM_MasterPlaying;
   }
 
   /* Check if it times out */
@@ -288,17 +304,39 @@ static void UserApp1SM_IfOpen(void)
 }
 
 
-static void UserApp1SM_Playing(void)
+static void UserApp1SM_OpenToSlave(void)
 {
-  u8 u8EventCode;
-  static bool bEnd1 = FALSE;
+  u8 au8Slave[] = "Seeker";
+  /* Ensure that both channels have opened */
+  if( (AntRadioStatusChannel(ANT_CHANNEL_2) == ANT_OPEN) && (AntRadioStatusChannel(ANT_CHANNEL_1) == ANT_OPEN) )
+  {
+    /* Update LCD and go to main Radio monitoring state */
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, au8Slave);
+    au8TempSlave[3] = u8TempSlave/10 + 48;
+    au8TempSlave[4] = u8TempSlave%10 + 48;
+    LCDMessage(LINE1_END_ADDR-8, au8TempSlave);
+    LCDMessage(LINE2_START_ADDR, au8MasterSend);
+    
+    UserApp1_StateMachine = UserApp1SM_SlavePlaying;
+  }
+
+  /* Check if it times out */
+  if( IsTimeUp(&UserApp1_u32Timeout, 2000) )
+  {
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, "Fail to Open channel");
+    UserApp1_StateMachine = UserApp1SM_Error;
+  }
+}
+
+
+static void UserApp1SM_MasterPlaying(void)
+{
+  u8 u8EventCode2;
   static bool bEnd2 = FALSE;
-  static bool bStop1 = TRUE;
   static bool bStop2 = TRUE;
-  /* u8 au8SlaveBeforeSeek[] = "Seeker";
-  u8 au8SlaveStartSeek_1[] = "Ready or not";
-  u8 au8SlaveStartSeek_2[] = "Here I come!";
-  u8 au8SlaveEndSeek[] = "Found You!"; */
+  u8 au8EndFound[] = "You found me!";
 
   /*if(WasButtonPressed(BUTTON0))
   {
@@ -314,33 +352,19 @@ static void UserApp1SM_Playing(void)
     if(G_eAntApiCurrentMessageClass == ANT_TICK)
     {
       /* Get the EVENT code */
-      u8EventCode = G_au8AntApiCurrentMessageBytes[ANT_TICK_MSG_EVENT_CODE_INDEX];
+      u8EventCode2 = G_au8AntApiCurrentMessageBytes[ANT_TICK_MSG_EVENT_CODE_INDEX];
 
       if(G_sAntApiCurrentMessageExtData.u8Channel == 2)
       {
-        if(u8EventCode == EVENT_TX)
+        if(u8EventCode2 == EVENT_TX)
         {
           u32MasterMSGCounter++;
           if(u32MasterMSGCounter >= 8)
           {
             s8RssiChannel2 = -99;
-            //LedOff(LCD_RED);
             au8TempMaster[3] = 0;
             au8TempMaster[4] = 0;
           }
-        }
-      }
-    }
-
-      if(G_sAntApiCurrentMessageExtData.u8Channel == 1)
-      {
-        /* Check the Event code */
-        if (u8EventCode == EVENT_RX_FAIL_GO_TO_SEARCH)
-        {
-            s8RssiChannel1 = -99;
-            //LedOff(LCD_BLUE);
-            au8TempSlave[3] = 0;
-            au8TempSlave[4] = 0;
         }
       }
     }
@@ -353,40 +377,20 @@ static void UserApp1SM_Playing(void)
         /* Reset the message counter */
         u32MasterMSGCounter = 0;
         
-        /* Channel 0 is red */
-        //LedOn(LCD_RED);
-        
         /* Record RSSI */
         s8RssiChannel2 = G_sAntApiCurrentMessageExtData.s8RSSI;
         u8TempMaster = abs(s8RssiChannel2);
         au8TempMaster[3] = u8TempMaster/10 + 48;
         au8TempMaster[4] = u8TempMaster%10 + 48;
-        LCDMessage(LINE1_START_ADDR+9, au8TempMaster);
+        LCDMessage(LINE1_END_ADDR-8, au8TempMaster);
       }
-      
-      if(G_sAntApiCurrentMessageExtData.u8Channel == 1)
-      {
-        /* Queue a response message */
-        AntQueueBroadcastMessage(ANT_CHANNEL_1, au8MasterSend);
-
-        /* Channel 1 is Blue */
-        //LedOn(LCD_BLUE);
-
-        /* Record RSSI */
-        s8RssiChannel1 = G_sAntApiCurrentMessageExtData.s8RSSI;
-        u8TempSlave = abs(s8RssiChannel1);
-        au8TempSlave[3] = u8TempSlave/10 + 48;
-        au8TempSlave[4] = u8TempSlave%10 + 48;
-        LCDMessage(LINE1_START_ADDR, au8TempSlave);
-      }
-
     }
 
-      if(s8RssiChannel1 > -90 || s8RssiChannel1 == -90)
+      if(s8RssiChannel2 < -90)
       {
-        if(bStop1)
+        if(bStop2)
         {
-          LedOn(WHITE);
+          LedOff(WHITE);
           LedOff(PURPLE);
           LedOff(BLUE);
           LedOff(CYAN);
@@ -396,124 +400,6 @@ static void UserApp1SM_Playing(void)
           LedOff(RED);
         }
       }
-      if(s8RssiChannel1 > -85 || s8RssiChannel1 == -85)
-      {
-        if(bStop1)
-        {
-          LedOn(WHITE);
-          LedOn(PURPLE);
-          LedOff(BLUE);
-          LedOff(CYAN);
-          LedOff(GREEN);
-          LedOff(YELLOW);
-          LedOff(ORANGE);
-          LedOff(RED);
-        }
-      }
-      if(s8RssiChannel1 > -80 || s8RssiChannel1 == -80)
-      {
-        if(bStop1)
-        {
-          LedOn(WHITE);
-          LedOn(PURPLE);
-          LedOn(BLUE);
-          LedOff(CYAN);
-          LedOff(GREEN);
-          LedOff(YELLOW);
-          LedOff(ORANGE);
-          LedOff(RED);
-        }
-      }
-      if(s8RssiChannel1 > -75 || s8RssiChannel1 == -75)
-      {
-        if(bStop1)
-        {
-          LedOn(WHITE);
-          LedOn(PURPLE);
-          LedOn(BLUE);
-          LedOn(CYAN);
-          LedOff(GREEN);
-          LedOff(YELLOW);
-          LedOff(ORANGE);
-          LedOff(RED);
-        }
-      }
-      if(s8RssiChannel1 > -70 || s8RssiChannel1 == -70)
-      {
-        if(bStop1)
-        {
-          LedOn(WHITE);
-          LedOn(PURPLE);
-          LedOn(BLUE);
-          LedOn(CYAN);
-          LedOn(GREEN);
-          LedOff(YELLOW);
-          LedOff(ORANGE);
-          LedOff(RED);
-        }
-      }
-      if(s8RssiChannel1 > -65 || s8RssiChannel1 == -65)
-      {
-        if(bStop1)
-        {
-          LedOn(WHITE);
-          LedOn(PURPLE);
-          LedOn(BLUE);
-          LedOn(CYAN);
-          LedOn(GREEN);
-          LedOn(YELLOW);
-          LedOff(ORANGE);
-          LedOff(RED);
-        }
-      }
-      if(s8RssiChannel1 > -60 || s8RssiChannel1 == -60)
-      {
-        if(bStop1)
-        {
-          LedOn(WHITE);
-          LedOn(PURPLE);
-          LedOn(BLUE);
-          LedOn(CYAN);
-          LedOn(GREEN);
-          LedOn(YELLOW);
-          LedOn(ORANGE);
-          LedOff(RED);
-        }
-      }
-      if(s8RssiChannel1 > -55 || s8RssiChannel1 == -55)
-      {
-        if(bStop1)
-        {
-          LedOn(WHITE);
-          LedOn(PURPLE);
-          LedOn(BLUE);
-          LedOn(CYAN);
-          LedOn(GREEN);
-          LedOn(YELLOW);
-          LedOn(ORANGE);
-          LedOn(RED);
-        }
-      }
-      if(s8RssiChannel1 == -50)
-      {
-        bStop1 = FALSE;
-        bEnd1 = TRUE;
-      }
-
-      if(bEnd1)
-      {
-        LCDCommand(LCD_CLEAR_CMD);
-        //LCDMessage(LINE1_START_ADDR, au8SlaveEndSeek);
-        LedBlink(WHITE, LED_2HZ);
-        LedBlink(PURPLE, LED_2HZ);
-        LedBlink(BLUE, LED_2HZ);
-        LedBlink(CYAN, LED_2HZ);
-        LedBlink(GREEN, LED_2HZ);
-        LedBlink(YELLOW, LED_2HZ);
-        LedBlink(ORANGE, LED_2HZ);
-        LedBlink(RED, LED_2HZ);
-      }
-
       if(s8RssiChannel2 > -90 || s8RssiChannel2 == -90)
       {
         if(bStop2)
@@ -626,16 +512,233 @@ static void UserApp1SM_Playing(void)
           LedOn(RED);
         }
       }
-      if(s8RssiChannel1 == -50)
+      if(s8RssiChannel1 > -50 || s8RssiChannel1 == -50)
       {
         bStop2 = FALSE;
         bEnd2 = TRUE;
       }
+  }
 
       if(bEnd2)
       {
         LCDCommand(LCD_CLEAR_CMD);
-        //LCDMessage(LINE1_START_ADDR, au8SlaveEndSeek);
+        LCDMessage(LINE1_START_ADDR, au8EndFound);
+        LedBlink(WHITE, LED_2HZ);
+        LedBlink(PURPLE, LED_2HZ);
+        LedBlink(BLUE, LED_2HZ);
+        LedBlink(CYAN, LED_2HZ);
+        LedBlink(GREEN, LED_2HZ);
+        LedBlink(YELLOW, LED_2HZ);
+        LedBlink(ORANGE, LED_2HZ);
+        LedBlink(RED, LED_2HZ);
+      }
+
+  if(WasButtonPressed(BUTTON3))
+  {
+    ButtonAcknowledge(BUTTON3);
+
+    /* Turn off all the LEDs */
+    LedOff(WHITE);
+    LedOff(PURPLE);
+    LedOff(BLUE);
+    LedOff(CYAN);
+    LedOff(GREEN);
+    LedOff(YELLOW);
+    LedOff(ORANGE);
+    LedOff(RED);
+    
+    /* Back to the start */
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, au8WelcomeMessage);
+    LCDMessage(LINE2_START_ADDR, au8Instructions);
+    
+    /* Close channels */
+    AntCloseChannelNumber(ANT_CHANNEL_2);
+    AntCloseChannelNumber(ANT_CHANNEL_1);
+    UserApp1_u32Timeout = G_u32SystemTime1ms;
+    UserApp1_StateMachine = UserApp1SM_CloseChannels;
+  }
+}
+
+
+static void UserApp1SM_SlavePlaying(void)
+{
+  u8 u8EventCode1;
+  static bool bStop1 = TRUE;
+  static bool bEnd1 = FALSE;
+  u8 au8EndSeek[] = "Found you!";
+
+  if(AntReadAppMessageBuffer())
+  {
+    if(G_eAntApiCurrentMessageClass == ANT_TICK)
+    {
+      /* Get the EVENT code */
+      u8EventCode1 = G_au8AntApiCurrentMessageBytes[ANT_TICK_MSG_EVENT_CODE_INDEX];
+      if(G_sAntApiCurrentMessageExtData.u8Channel == 1)
+      {
+        /* Check the Event code */
+        if (u8EventCode1 == EVENT_RX_FAIL_GO_TO_SEARCH)
+        {
+            s8RssiChannel1 = -99;
+            au8TempSlave[3] = 0;
+            au8TempSlave[4] = 0;
+        }
+      }
+    }
+
+    if(G_eAntApiCurrentMessageClass == ANT_DATA)
+    {
+      if(G_sAntApiCurrentMessageExtData.u8Channel == 1)
+      {
+        /* Queue a response message */
+        AntQueueBroadcastMessage(ANT_CHANNEL_1, au8MasterSend);
+
+        /* Record RSSI */
+        s8RssiChannel1 = G_sAntApiCurrentMessageExtData.s8RSSI;
+        u8TempSlave = abs(s8RssiChannel1);
+        au8TempSlave[3] = u8TempSlave/10 + 48;
+        au8TempSlave[4] = u8TempSlave%10 + 48;
+        LCDMessage(LINE1_END_ADDR-8, au8TempSlave);
+      }
+    }
+
+      if(s8RssiChannel1 < -90)
+      {
+        if(bStop1)
+        {
+          LedOff(WHITE);
+          LedOff(PURPLE);
+          LedOff(BLUE);
+          LedOff(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
+        }
+      }
+      if(s8RssiChannel1 > -90 || s8RssiChannel1 == -90)
+      {
+        if(bStop1)
+        {
+          LedOn(WHITE);
+          LedOff(PURPLE);
+          LedOff(BLUE);
+          LedOff(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
+        }
+      }
+      if(s8RssiChannel1 > -85 || s8RssiChannel1 == -85)
+      {
+        if(bStop1)
+        {
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOff(BLUE);
+          LedOff(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
+        }
+      }
+      if(s8RssiChannel1 > -80 || s8RssiChannel1 == -80)
+      {
+        if(bStop1)
+        {
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOff(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
+        }
+      }
+      if(s8RssiChannel1 > -75 || s8RssiChannel1 == -75)
+      {
+        if(bStop1)
+        {
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
+        }
+      }
+      if(s8RssiChannel1 > -70 || s8RssiChannel1 == -70)
+      {
+        if(bStop1)
+        {
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOn(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
+        }
+      }
+      if(s8RssiChannel1 > -65 || s8RssiChannel1 == -65)
+      {
+        if(bStop1)
+        {
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOn(GREEN);
+          LedOn(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
+        }
+      }
+      if(s8RssiChannel1 > -60 || s8RssiChannel1 == -60)
+      {
+        if(bStop1)
+        {
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOn(GREEN);
+          LedOn(YELLOW);
+          LedOn(ORANGE);
+          LedOff(RED);
+        }
+      }
+      if(s8RssiChannel1 > -55 || s8RssiChannel1 == -55)
+      {
+        if(bStop1)
+        {
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOn(GREEN);
+          LedOn(YELLOW);
+          LedOn(ORANGE);
+          LedOn(RED);
+        }
+      }
+      if(s8RssiChannel1 > -55 || s8RssiChannel1 == -50)
+      {
+        bStop1 = FALSE;
+        bEnd1 = TRUE;
+      }
+  }
+
+      if(bEnd1)
+      {
+        LCDCommand(LCD_CLEAR_CMD);
+        LCDMessage(LINE1_START_ADDR, au8EndSeek);
         LedBlink(WHITE, LED_2HZ);
         LedBlink(PURPLE, LED_2HZ);
         LedBlink(BLUE, LED_2HZ);
