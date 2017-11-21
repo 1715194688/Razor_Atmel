@@ -63,24 +63,22 @@ extern volatile u32 G_u32SystemTime1s;                 /* From board-specific so
 Global variable definitions with scope limited to this local application.
 Variable names shall start with "UserApp1_" and be declared as static.
 ***********************************************************************************************************************/
-//static u32 UserApp1_u32DataMsgCount = 0;             /* Counts the number of ANT_DATA packets received */
-//static u32 UserApp1_u32TickMsgCount = 0;             /* Counts the number of ANT_TICK packets received */
-
 static fnCode_type UserApp1_StateMachine;            /* The state machine function pointer */
 static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
 
 static s8 s8RssiChannel1 = -99;                      /* Record the current RSSI level */
 static s8 s8RssiChannel0 = -99;                      /* Record the current RSSI level */
-//static u32 u32MasterMSGCounter = 0;
 
 static AntAssignChannelInfoType sAntSetupMaster;
 static AntAssignChannelInfoType sAntSetupSlave;
+
 static u8 au8MasterSend[9] = "0\0\0\0\0\0\0\0";
 
 static u8 au8TempMaster[9] = {'M',':','-',0,0,'d','B','m','\0'};
 static u8 au8TempSlave[9] = {'S',':','-',0,0,'d','B','m','\0'};
 static u8 u8TempMaster;
 static u8 u8TempSlave;
+
 u8 au8WelcomeMessage[] = "Hide and Go Seek!";
 u8 au8Instructions[] = "Press B0 to Start";
 
@@ -118,7 +116,6 @@ void UserApp1Initialize(void)
 {
   u8 au8WelcomeMessage[] = "Hide and Go Seek!";
   u8 au8Instructions[] = "Press B0 to Start";
-  //AntAssignChannelInfoType sAntSetupData;
   
   /* Clear screen and place start messages */
   LCDCommand(LCD_CLEAR_CMD);
@@ -208,6 +205,11 @@ State Machine Function Definitions
 **********************************************************************************************************************/
 
 /*-------------------------------------------------------------------------------------------------------------------*/
+
+
+/* Function UserApp1SM_AntConfigureSlave():
+Check if it finishes configuring the slave channel
+*/
 static void UserApp1SM_AntConfigureMaster(void)
 {
   /* Judge if the channel has been confrigured */
@@ -226,18 +228,18 @@ static void UserApp1SM_AntConfigureMaster(void)
     LCDMessage(LINE1_START_ADDR, "Master config failed");
     UserApp1_StateMachine = UserApp1SM_Error;
   }
-}
+}/* End UserApp1SM_AntConfigureMaster() */
 
 
+
+/* Function UserApp1SM_AntConfigureSlave():
+Check if it finishes configuring the slave channel
+*/
 static void UserApp1SM_AntConfigureSlave(void)
 {
   /* Judge if the channel has been configured */
   if(AntRadioStatusChannel(ANT_CHANNEL_0) == ANT_CONFIGURED)
   {
-    /* Update the broadcast message data */
-    //AntQueueBroadcastMessage(ANT_CHANNEL_2, au8MasterSend);
-    //AntQueueBroadcastMessage(ANT_CHANNEL_1, au8MasterSend);
-
     UserApp1_StateMachine = UserApp1SM_Idle;
   }
 
@@ -248,12 +250,14 @@ static void UserApp1SM_AntConfigureSlave(void)
     LCDMessage(LINE1_START_ADDR, "Slave config failed");
     UserApp1_StateMachine = UserApp1SM_Error;
   }
-}
+}/* End UserApp1SM_AntConfigureSlave() */
 
 
+/* Function UserApp1SM_Idle():
+Used to start the game and select identities
+*/
 static void UserApp1SM_Idle(void)
 {
-  //static bool bClear = TRUE;
   u8 au8WelcomeMessage[] = "Hide and Go Seek!";
   u8 au8Instructions[] = "Press B0 to Start";
 
@@ -291,18 +295,21 @@ static void UserApp1SM_Idle(void)
     ButtonAcknowledge(BUTTON2);
     UserApp1_StateMachine = UserApp1SM_SlaveCount;
   }
-}
+}/* End UserApp1SM_Idle() */
 
 
+/* Function UserApp1SM_SlaveCount():
+Master: Game countdown
+*/
 static void UserApp1SM_MasterCount(void)
 {
   bool bBack0 = TRUE;
-  static u16 u16Counter0 = 10000;
+  static u16 u16Counter0 = 5000;
 
   if(bBack0)
   {
     u16Counter0--;
-    if(u16Counter0==9000)
+    /*if(u16Counter0==9000)
     {
       LCDCommand(LCD_CLEAR_CMD);
       LCDMessage(LINE1_START_ADDR, "Hider");
@@ -331,10 +338,11 @@ static void UserApp1SM_MasterCount(void)
     {
       LCDMessage(LINE1_START_ADDR, "Hider");
       LCDMessage(LINE2_START_ADDR, "5");
-    }
+    }*/
     
     if(u16Counter0==4000)
     {
+      LCDCommand(LCD_CLEAR_CMD);
       LCDMessage(LINE1_START_ADDR, "Hider");
       LCDMessage(LINE2_START_ADDR, "4");
     }
@@ -368,17 +376,20 @@ static void UserApp1SM_MasterCount(void)
       UserApp1_StateMachine = UserApp1SM_MasterDelay;
     }
   }
-}
+}/* End UserApp1SM_SlaveCount() */
 
 
+/* Function UserApp1SM_SlaveCount():
+Slave: Game countdown
+*/
 static void UserApp1SM_SlaveCount(void)
 {
   bool bBack1 = TRUE;
-  static u16 u16Counter1 = 10000;
+  static u16 u16Counter1 = 5000;
 
   if(bBack1)
   {
-    u16Counter1--;
+    /*u16Counter1--;
     if(u16Counter1==9000)
     {
       LCDCommand(LCD_CLEAR_CMD);
@@ -408,10 +419,11 @@ static void UserApp1SM_SlaveCount(void)
     {
       LCDMessage(LINE1_START_ADDR, "Seeker");
       LCDMessage(LINE2_START_ADDR, "5");
-    }
+    }*/
 
     if(u16Counter1==4000)
     {
+      LCDCommand(LCD_CLEAR_CMD);
       LCDMessage(LINE1_START_ADDR, "Seeker");
       LCDMessage(LINE2_START_ADDR, "4");
     }
@@ -445,9 +457,12 @@ static void UserApp1SM_SlaveCount(void)
       UserApp1_StateMachine = UserApp1SM_SlaveDelay;
     }
   }
-}
+}/* End UserApp1SM_SlaveCount() */
 
 
+/* Function UserApp1SM_MasterDelay():
+Set the delay to ensure the channel opens
+*/
 static void UserApp1SM_MasterDelay(void)
 {
   static u16 u16DelayCounter1 = 3000;
@@ -458,9 +473,12 @@ static void UserApp1SM_MasterDelay(void)
     u16DelayCounter1 = 3000;
     UserApp1_StateMachine = UserApp1SM_MasterPlaying;
   }
-}
+}/* End UserApp1SM_MasterDelay() */
 
 
+/* Function UserApp1SM_MasterDelay():
+Set the delay to ensure the channel opens
+*/
 static void UserApp1SM_SlaveDelay(void)
 {
   static u16 u16DelayCounter0 = 3000;
@@ -471,13 +489,15 @@ static void UserApp1SM_SlaveDelay(void)
     u16DelayCounter0 = 3000;
     UserApp1_StateMachine = UserApp1SM_SlavePlaying;
   }
-}
+}/* End UserApp1SM_MasterDelay() */
 
 
+
+/* Function UserApp1SM_SlavePlaying():
+Go to this state after choosing master
+*/
 static void UserApp1SM_MasterPlaying(void)
 {
-  //static bool bStop0 = TRUE;
-
   if(AntReadAppMessageBuffer())
   {
     if(G_eAntApiCurrentMessageClass == ANT_DATA)
@@ -500,7 +520,7 @@ static void UserApp1SM_MasterPlaying(void)
       }
   }
 
-  /* End the game */
+  /* End the game under whatever circumstances */
   if(WasButtonPressed(BUTTON3))
   {
     ButtonAcknowledge(BUTTON3);
@@ -515,23 +535,19 @@ static void UserApp1SM_MasterPlaying(void)
     LedOff(ORANGE);
     LedOff(RED);
 
-    /*LCDCommand(LCD_CLEAR_CMD);
-    LCDMessage(LINE1_START_ADDR, au8WelcomeMessage);
-    LCDMessage(LINE2_START_ADDR, au8Instructions);*/
-
-    /* Close channels */
-    //AntCloseChannelNumber(ANT_CHANNEL_0);
-    //AntCloseChannelNumber(ANT_CHANNEL_1);
+    /* Close the channel */
+    AntCloseChannelNumber(ANT_CHANNEL_1);
     UserApp1_u32Timeout = G_u32SystemTime1ms;
     UserApp1_StateMachine = UserApp1SM_Idle;
   }
-}
+}/* End UserApp1SM_MasterPlaying() */
 
 
+/* Function UserApp1SM_SlavePlaying():
+Go to this state after choosing slave
+*/
 static void UserApp1SM_SlavePlaying(void)
 {
-  //static bool bStop1 = TRUE;
-
   if(AntReadAppMessageBuffer())
   {
     if(G_eAntApiCurrentMessageClass == ANT_DATA)
@@ -691,7 +707,7 @@ static void UserApp1SM_SlavePlaying(void)
       }
   }
 
-  /* End the game */
+  /* End the game under whatever circumstances */
   if(WasButtonPressed(BUTTON3))
   {
     ButtonAcknowledge(BUTTON3);
@@ -706,24 +722,22 @@ static void UserApp1SM_SlavePlaying(void)
     LedOff(ORANGE);
     LedOff(RED);
 
-    /*LCDCommand(LCD_CLEAR_CMD);
-    LCDMessage(LINE1_START_ADDR, au8WelcomeMessage);
-    LCDMessage(LINE2_START_ADDR, au8Instructions);*/
-
-    /* Close channels */
-    //AntCloseChannelNumber(ANT_CHANNEL_0);
-    //AntCloseChannelNumber(ANT_CHANNEL_1);
+    /* Close the channel */
+    AntCloseChannelNumber(ANT_CHANNEL_0);
     UserApp1_u32Timeout = G_u32SystemTime1ms;
     UserApp1_StateMachine = UserApp1SM_Idle;
   }
-}
+}/* End UserApp1SM_SlavePlaying() */
 
 
+/* Function UserApp1SM_MasterBlink():
+After being found, blink the LEDs
+*/
 static void UserApp1SM_MasterBlink(void)
 {
   static bool bMasterBlink = TRUE;
   u8 au8EndFound[] = "You found me!";
-  static u16 u16OverCounter0 = 10000;
+  static u16 u16OverCounter0 = 5000;
 
   u16OverCounter0--;
 
@@ -759,14 +773,17 @@ static void UserApp1SM_MasterBlink(void)
   
     UserApp1_StateMachine = UserApp1SM_Idle;
   }
-}
+}/* End UserApp1SM_MasterBlink() */
 
 
+/* Function UserApp1SM_MasterBlink():
+After finding, blink the LEDs
+*/
 static void UserApp1SM_SlaveBlink(void)
 {
   static bool bSlaveBlink = TRUE;
   u8 au8EndSeek[] = "Found you!";
-  static u16 u16OverCounter1 = 10000;
+  static u16 u16OverCounter1 = 5000;
 
   u16OverCounter1--;
 
@@ -803,7 +820,7 @@ static void UserApp1SM_SlaveBlink(void)
   
     UserApp1_StateMachine = UserApp1SM_Idle;
   }
-}
+}/* End UserApp1SM_SlaveBlink() */
 
 
 /*-------------------------------------------------------------------------------------------------------------------*/
