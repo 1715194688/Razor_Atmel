@@ -33,10 +33,10 @@ Constants / Definitions
 #define ANT_CHANNEL_TYPE_USERAPP        CHANNEL_TYPE_SLAVE    /* ANT SLAVE */
 #define ANT_DEVICEID_LO_USERAPP         (u8)0                 /* Low byte of two-byte Device # */
 #define ANT_DEVICEID_HI_USERAPP         (u8)0                 /* High byte of two-byte Device # */
-#define ANT_DEVICE_TYPE_USERAPP         (u8)0                 /* 1 - 255 */
-#define ANT_TRANSMISSION_TYPE_USERAPP   (u8)0                 /* 1-127 (MSB is pairing bit) */
-#define ANT_CHANNEL_PERIOD_LO_USERAPP   (u8)0x00              /* Low byte of two-byte channel period 0x0001 - 0x7fff */
-#define ANT_CHANNEL_PERIOD_HI_USERAPP   (u8)0x20              /* High byte of two-byte channel period */
+#define ANT_DEVICE_TYPE_USERAPP         (u8)120                 /* 1 - 255 */
+#define ANT_TRANSMISSION_TYPE_USERAPP   (u8)1                 /* 1-127 (MSB is pairing bit) */
+#define ANT_CHANNEL_PERIOD_LO_USERAPP   (u8)0x86              /* Low byte of two-byte channel period 0x0001 - 0x7fff */
+#define ANT_CHANNEL_PERIOD_HI_USERAPP   (u8)0x1F              /* High byte of two-byte channel period */
 #define ANT_FREQUENCY_USERAPP           (u8)57                /* 2400MHz + this number 0 - 99 */
 #define ANT_TX_POWER_USERAPP            RADIO_TX_POWER_4DBM   /* RADIO_TX_POWER_0DBM, RADIO_TX_POWER_MINUS5DBM, RADIO_TX_POWER_MINUS10DBM, RADIO_TX_POWER_MINUS20DBM */
 
@@ -70,11 +70,16 @@ void UserApp1RunActiveState(void);
 /***********************************************************************************************************************
 State Machine Declarations
 ***********************************************************************************************************************/
-static void UserApp1SM_WaitChannelAssign(void);
-static void UserApp1SM_Idle(void);    
-static void UserApp1SM_WaitChannelOpen(void);
-static void UserApp1SM_ChannelOpen(void);
-static void UserApp1SM_WaitChannelClose(void);
+static void UserApp1SM_IfConfigured(void);
+static void UserApp1SM_JudgeButton(void);
+//static void UserApp1SM_IfChannelOpen0(void);
+static void UserApp1SM_IfChannelOpen1(void);
+static void UserApp1SM_IfChannelOpen2(void);
+static void UserApp1SM_IfChannelOpen3(void);
+static void UserApp1SM_CommonMode(void);
+static void UserApp1SM_LoseWeightMode(void);
+static void UserApp1SM_FindMode(void);
+
 
 static void UserApp1SM_Error(void);         
 static void UserApp1SM_FailedInit(void);        
