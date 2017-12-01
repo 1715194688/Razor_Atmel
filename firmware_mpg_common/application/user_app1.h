@@ -33,12 +33,14 @@ Constants / Definitions
 #define ANT_CHANNEL_TYPE_USERAPP        CHANNEL_TYPE_SLAVE    /* ANT SLAVE */
 #define ANT_DEVICEID_LO_USERAPP         (u8)0                 /* Low byte of two-byte Device # */
 #define ANT_DEVICEID_HI_USERAPP         (u8)0                 /* High byte of two-byte Device # */
-#define ANT_DEVICE_TYPE_USERAPP         (u8)120                 /* 1 - 255 */
+#define ANT_DEVICE_TYPE_USERAPP         (u8)(0x78)            /* 1 - 255 */
 #define ANT_TRANSMISSION_TYPE_USERAPP   (u8)1                 /* 1-127 (MSB is pairing bit) */
 #define ANT_CHANNEL_PERIOD_LO_USERAPP   (u8)0x86              /* Low byte of two-byte channel period 0x0001 - 0x7fff */
 #define ANT_CHANNEL_PERIOD_HI_USERAPP   (u8)0x1F              /* High byte of two-byte channel period */
 #define ANT_FREQUENCY_USERAPP           (u8)57                /* 2400MHz + this number 0 - 99 */
 #define ANT_TX_POWER_USERAPP            RADIO_TX_POWER_4DBM   /* RADIO_TX_POWER_0DBM, RADIO_TX_POWER_MINUS5DBM, RADIO_TX_POWER_MINUS10DBM, RADIO_TX_POWER_MINUS20DBM */
+
+#define AU8_ANT_PLUS_NETWORK_KEY        {0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45}
 
 #define TIMEOUT_VALUE                   (u32)2000             /* Maximum allowed timeout value for any transition state */
 
@@ -91,3 +93,4 @@ static void UserApp1SM_FailedInit(void);
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* End of File                                                                                                        */
 /*--------------------------------------------------------------------------------------------------------------------*/
+

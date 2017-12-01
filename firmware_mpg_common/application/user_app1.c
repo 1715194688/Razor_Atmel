@@ -66,8 +66,9 @@ Variable names shall start with "UserApp1_" and be declared as static.
 static fnCode_type UserApp1_StateMachine;            /* The state machine function pointer */
 static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
 
-static bool bChoose = TRUE;
+static bool bSetAge = TRUE;
 static bool bFindMode = TRUE;
+static bool bClear = TRUE;
 static u8 u8ChangeFlag=0;
 
 
@@ -98,6 +99,7 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
+  static u8 au8Networkkey[8] = AU8_ANT_PLUS_NETWORK_KEY;
   AntAssignChannelInfoType sAntSetupData;
 
   PWMAudioSetFrequency(BUZZER1, 2000);
@@ -123,7 +125,7 @@ void UserApp1Initialize(void)
   sAntSetupData.AntNetwork = ANT_NETWORK_DEFAULT;
   for(u8 i = 0; i < ANT_NETWORK_NUMBER_BYTES; i++)
   {
-    sAntSetupData.AntNetworkKey[i] = ANT_DEFAULT_NETWORK_KEY;
+    sAntSetupData.AntNetworkKey[i] = au8Networkkey[i];
   }
     
   /* If good initialization, set state to Idle */
@@ -193,8 +195,10 @@ static void UserApp1SM_IfConfigured(void)
 /**/
 static void UserApp1SM_JudgeButton(void)
 {
-  bChoose = TRUE;
+  bSetAge = TRUE;
   bFindMode = TRUE;
+  bClear = TRUE;
+  u8ChangeFlag = 0;
 
   if(WasButtonPressed(BUTTON1))
   {
@@ -288,160 +292,187 @@ static void UserApp1SM_CommonMode(void)
   u8 au8LowRate[] = "Too low!Be careful!";
   u8 au8NormalRate[] = "Your Rate is Normal!";
   u8 au8HighRate[] = "Too High!Attention!";
-  static u8 u8HeartRate = 0;
+  static u8 u8HeartRate = 50;
 
   if( AntReadAppMessageBuffer() )
   {
     if(G_eAntApiCurrentMessageClass == ANT_DATA)
     {
+      u8HeartRate = G_au8AntApiCurrentMessageBytes[7];
       au8HeartRate[10] = G_au8AntApiCurrentMessageBytes[7]/100 + 48;
       au8HeartRate[11] = G_au8AntApiCurrentMessageBytes[7]%100/10 + 48;
       au8HeartRate[12] = G_au8AntApiCurrentMessageBytes[7]%10 + 48;
 
-      u8HeartRate = G_au8AntApiCurrentMessageBytes[7];
-
-      LCDCommand(LCD_CLEAR_CMD);
+      LCDClearChars(LINE1_START_ADDR, 20);
       LCDMessage(LINE1_START_ADDR, au8HeartRate);
-    }
-  }
 
-  if(u8HeartRate >50 && u8HeartRate < 60)
-  {
-    LCDClearChars(LINE2_START_ADDR, 20);
-    LCDMessage(LINE2_START_ADDR, au8LowRate);
-    bLow = TRUE;
-  }
-  if(u8HeartRate >60 && u8HeartRate < 70)
-  {
-    bLow = FALSE;
-    bHigh = FALSE;
-    LCDClearChars(LINE2_START_ADDR, 20);
-    LCDMessage(LINE2_START_ADDR, au8NormalRate);
-    PWMAudioOff(BUZZER1);
-    LedOn(WHITE);
-    LedOff(PURPLE);
-    LedOff(BLUE);
-    LedOff(CYAN);
-    LedOff(GREEN);
-    LedOff(YELLOW);
-    LedOff(ORANGE);
-    LedOff(RED);
-  }
-  if(u8HeartRate >70 && u8HeartRate < 80)
-  {
-    bLow = FALSE;
-    bHigh = FALSE;
-    LCDClearChars(LINE2_START_ADDR, 20);
-    LCDMessage(LINE2_START_ADDR, au8NormalRate);
-    PWMAudioOff(BUZZER1);
-    LedOn(WHITE);
-    LedOn(PURPLE);
-    LedOff(BLUE);
-    LedOff(CYAN);
-    LedOff(GREEN);
-    LedOff(YELLOW);
-    LedOff(ORANGE);
-    LedOff(RED);
-  }
-  if(u8HeartRate >80 && u8HeartRate < 90)
-  {
-    bLow = FALSE;
-    bHigh = FALSE;
-    LCDClearChars(LINE2_START_ADDR, 20);
-    LCDMessage(LINE2_START_ADDR, au8NormalRate);
-    PWMAudioOff(BUZZER1);
-    LedOn(WHITE);
-    LedOn(PURPLE);
-    LedOn(BLUE);
-    LedOff(CYAN);
-    LedOff(GREEN);
-    LedOff(YELLOW);
-    LedOff(ORANGE);
-    LedOff(RED);
-  }
-  if(u8HeartRate >90 && u8HeartRate < 100)
-  {
-    bLow = FALSE;
-    bHigh = FALSE;
-    LCDClearChars(LINE2_START_ADDR, 20);
-    LCDMessage(LINE2_START_ADDR, au8NormalRate);
-    PWMAudioOff(BUZZER1);
-    LedOn(WHITE);
-    LedOn(PURPLE);
-    LedOn(BLUE);
-    LedOn(CYAN);
-    LedOff(GREEN);
-    LedOff(YELLOW);
-    LedOff(ORANGE);
-    LedOff(RED);
-  }
-  if(u8HeartRate >100 && u8HeartRate < 110)
-  {
-    bLow = FALSE;
-    bHigh = FALSE;
-    LCDClearChars(LINE2_START_ADDR, 20);
-    LCDMessage(LINE2_START_ADDR, au8NormalRate);
-    PWMAudioOff(BUZZER1);
-    LedOn(WHITE);
-    LedOn(PURPLE);
-    LedOn(BLUE);
-    LedOn(CYAN);
-    LedOn(GREEN);
-    LedOff(YELLOW);
-    LedOff(ORANGE);
-    LedOff(RED);
-  }
-  if(u8HeartRate >110 && u8HeartRate < 120)
-  {
-    bLow = FALSE;
-    bHigh = FALSE;
-    LCDClearChars(LINE2_START_ADDR, 20);
-    LCDMessage(LINE2_START_ADDR, au8NormalRate);
-    PWMAudioOff(BUZZER1);
-    LedOn(WHITE);
-    LedOn(PURPLE);
-    LedOn(BLUE);
-    LedOn(CYAN);
-    LedOn(GREEN);
-    LedOn(YELLOW);
-    LedOff(ORANGE);
-    LedOff(RED);
-  }
-  if(u8HeartRate >120 && u8HeartRate < 130)
-  {
-    bLow = FALSE;
-    bHigh = FALSE;
-    LCDClearChars(LINE2_START_ADDR, 20);
-    LCDMessage(LINE2_START_ADDR, au8NormalRate);
-    PWMAudioOff(BUZZER1);
-    LedOn(WHITE);
-    LedOn(PURPLE);
-    LedOn(BLUE);
-    LedOn(CYAN);
-    LedOn(GREEN);
-    LedOn(YELLOW);
-    LedOn(ORANGE);
-    LedOff(RED);
-  }
-  if(u8HeartRate >130)
-  {
-    LCDClearChars(LINE2_START_ADDR, 20);
-    LCDMessage(LINE2_START_ADDR, au8HighRate);
-    bHigh = TRUE;
-  }
-  if(bLow || bHigh)
-  {
-    bLow = FALSE;
-    bHigh = FALSE;
-    PWMAudioOn(BUZZER1);
-    LedBlink(WHITE, LED_2HZ);
-    LedBlink(PURPLE, LED_2HZ);
-    LedBlink(BLUE, LED_2HZ);
-    LedBlink(CYAN, LED_2HZ);
-    LedBlink(GREEN, LED_2HZ);
-    LedBlink(YELLOW, LED_2HZ);
-    LedBlink(ORANGE, LED_2HZ);
-    LedBlink(RED, LED_2HZ);
+      if(u8HeartRate < 50 && !bLow)
+      {
+        bLow = TRUE;
+        LCDClearChars(LINE2_START_ADDR, 20);
+        LCDMessage(LINE2_START_ADDR, au8LowRate);
+        //PWMAudioOn(BUZZER1);
+        LedOff(WHITE);
+        LedOff(PURPLE);
+        LedOff(BLUE);
+        LedOff(CYAN);
+        LedOff(GREEN);
+        LedOff(YELLOW);
+        LedOff(ORANGE);
+        LedOff(RED);
+        LedBlink(WHITE, LED_2HZ);
+        LedBlink(PURPLE, LED_2HZ);
+        LedBlink(BLUE, LED_2HZ);
+        LedBlink(CYAN, LED_2HZ);
+        LedBlink(GREEN, LED_2HZ);
+        LedBlink(YELLOW, LED_2HZ);
+        LedBlink(ORANGE, LED_2HZ);
+        LedBlink(RED, LED_2HZ);
+      }
+      if(u8HeartRate > 50 && u8HeartRate < 60)
+      {
+        bLow = FALSE;
+        bHigh = FALSE;
+        LCDMessage(LINE2_START_ADDR, au8NormalRate);
+        PWMAudioOff(BUZZER1);
+        LedOff(WHITE);
+        LedOff(PURPLE);
+        LedOff(BLUE);
+        LedOff(CYAN);
+        LedOff(GREEN);
+        LedOff(YELLOW);
+        LedOff(ORANGE);
+        LedOff(RED);
+      }
+      if(u8HeartRate > 60 && u8HeartRate < 70)
+      {
+        bLow = FALSE;
+        bHigh = FALSE;
+        LCDMessage(LINE2_START_ADDR, au8NormalRate);
+        PWMAudioOff(BUZZER1);
+        LedOn(WHITE);
+        LedOff(PURPLE);
+        LedOff(BLUE);
+        LedOff(CYAN);
+        LedOff(GREEN);
+        LedOff(YELLOW);
+        LedOff(ORANGE);
+        LedOff(RED);
+      }
+      if(u8HeartRate > 70 && u8HeartRate < 80)
+      {
+        bLow = FALSE;
+        bHigh = FALSE;
+        LCDMessage(LINE2_START_ADDR, au8NormalRate);
+        PWMAudioOff(BUZZER1);
+        LedOn(WHITE);
+        LedOn(PURPLE);
+        LedOff(BLUE);
+        LedOff(CYAN);
+        LedOff(GREEN);
+        LedOff(YELLOW);
+        LedOff(ORANGE);
+        LedOff(RED);
+      }
+      if(u8HeartRate > 80 && u8HeartRate < 90)
+      {
+        bLow = FALSE;
+        bHigh = FALSE;
+        LCDMessage(LINE2_START_ADDR, au8NormalRate);
+        PWMAudioOff(BUZZER1);
+        LedOn(WHITE);
+        LedOn(PURPLE);
+        LedOn(BLUE);
+        LedOff(CYAN);
+        LedOff(GREEN);
+        LedOff(YELLOW);
+        LedOff(ORANGE);
+        LedOff(RED);
+      }
+      if(u8HeartRate > 90 && u8HeartRate < 100)
+      {
+        bLow = FALSE;
+        bHigh = FALSE;
+        LCDMessage(LINE2_START_ADDR, au8NormalRate);
+        PWMAudioOff(BUZZER1);
+        LedOn(WHITE);
+        LedOn(PURPLE);
+        LedOn(BLUE);
+        LedOn(CYAN);
+        LedOff(GREEN);
+        LedOff(YELLOW);
+        LedOff(ORANGE);
+        LedOff(RED);
+      }
+      if(u8HeartRate > 100 && u8HeartRate < 110)
+      {
+        bLow = FALSE;
+        bHigh = FALSE;
+        LCDMessage(LINE2_START_ADDR, au8NormalRate);
+        PWMAudioOff(BUZZER1);
+        LedOn(WHITE);
+        LedOn(PURPLE);
+        LedOn(BLUE);
+        LedOn(CYAN);
+        LedOn(GREEN);
+        LedOff(YELLOW);
+        LedOff(ORANGE);
+        LedOff(RED);
+      }
+      if(u8HeartRate > 110 && u8HeartRate < 120)
+      {
+        bLow = FALSE;
+        bHigh = FALSE;
+        LCDMessage(LINE2_START_ADDR, au8NormalRate);
+        PWMAudioOff(BUZZER1);
+        LedOn(WHITE);
+        LedOn(PURPLE);
+        LedOn(BLUE);
+        LedOn(CYAN);
+        LedOn(GREEN);
+        LedOn(YELLOW);
+        LedOff(ORANGE);
+        LedOff(RED);
+      }
+      if(u8HeartRate > 120 && u8HeartRate < 130)
+      {
+        bLow = FALSE;
+        bHigh = FALSE;
+        LCDMessage(LINE2_START_ADDR, au8NormalRate);
+        PWMAudioOff(BUZZER1);
+        LedOn(WHITE);
+        LedOn(PURPLE);
+        LedOn(BLUE);
+        LedOn(CYAN);
+        LedOn(GREEN);
+        LedOn(YELLOW);
+        LedOn(ORANGE);
+        LedOff(RED);
+      }
+      if(u8HeartRate > 130 && !bHigh)
+      {
+        bHigh = TRUE;
+        LCDClearChars(LINE2_START_ADDR, 20);
+        LCDMessage(LINE2_START_ADDR, au8HighRate);
+        //PWMAudioOn(BUZZER1);
+        LedOff(ORANGE);
+        LedOff(RED);
+        LedOff(PURPLE);
+        LedOff(CYAN);
+        LedOff(YELLOW);
+        LedOff(BLUE);
+        LedOff(GREEN);
+        LedOff(WHITE);
+        LedBlink(ORANGE,LED_2HZ);
+        LedBlink(RED,LED_2HZ);
+        LedBlink(PURPLE,LED_2HZ);
+        LedBlink(CYAN,LED_2HZ);
+        LedBlink(YELLOW,LED_2HZ);
+        LedBlink(BLUE,LED_2HZ);
+        LedBlink(GREEN,LED_2HZ);
+        LedBlink(WHITE,LED_2HZ);
+      }
+    }
   }
 
   if(WasButtonPressed(BUTTON0))
@@ -461,12 +492,6 @@ static void UserApp1SM_CommonMode(void)
     LedOff(GREEN);
     LedOff(WHITE);
   }
-
-  if(AntRadioStatusChannel(ANT_CHANNEL_USERAPP) != ANT_OPEN)
-  {
-    UserApp1_u32Timeout = G_u32SystemTime1ms;
-    UserApp1_StateMachine = UserApp1SM_JudgeButton;
-  }
 }/**/
 
 
@@ -479,21 +504,29 @@ static void UserApp1SM_LoseWeightMode(void)
   static u8 u8MinLoseWeightHR = 0;
   static u32 u32Sum = 0;
   static u8 au8Sum[100];
-  u8 au8ChooseAge[] = "Choose your age";
-  u8 au8AgeInterval[] = " 15-25  25-35  35-45";
+  u8 au8bSetAge[] = "SET YOUR AGE";
   static u8 au8HeartRate[]={'H','e','a','r','t','R','a','t','e',':', 0, 0, 0};
   static u8 au8ApproriateHR[20]={'A','p','p','r','o','p','r','i','a','t','e',':','0','0','0','-','0','0','0'};
   static u8 u8MaxRate = 0;
+  static u8 u8Age = 0;
   static u8 u8StaticRate = 0;
   static bool bApproriateHR = TRUE;
 
-  if(bChoose)
+  static u8 au8AgeMessage[20]={' ',' ',' ','C','O','N','T','I','N','U','E',' ',' ','0',' ',' ',' ',' ',' ','0'};
+  static u8 u8AgeHi[1];
+  static u8 u8AgeLo[1];
+
+  if(bSetAge)
   {
-    bChoose = FALSE;
+    bSetAge = FALSE;
     bApproriateHR = TRUE;
+    au8AgeMessage[13] = 48;
+    au8AgeMessage[19] = 48;
+    u8AgeLo[0] = 0;
+    u8AgeHi[0] = 0;
     LCDCommand(LCD_CLEAR_CMD);
-    LCDMessage(LINE1_START_ADDR, au8ChooseAge);
-    LCDMessage(LINE2_START_ADDR, au8AgeInterval);
+    LCDMessage(LINE1_START_ADDR, au8bSetAge);
+    LCDMessage(LINE2_START_ADDR, au8AgeMessage);
   }
 
   if(WasButtonPressed(BUTTON1))
@@ -501,21 +534,35 @@ static void UserApp1SM_LoseWeightMode(void)
     ButtonAcknowledge(BUTTON1);
 
     u8ChangeFlag = 1;
-    u8MaxRate = 200;
+    LCDCommand(LCD_CLEAR_CMD);
+    u8Age = u8AgeHi[0]*10 + u8AgeLo[0];
+    u8MaxRate = 220 - u8Age;
   }
   if(WasButtonPressed(BUTTON2))
   {
     ButtonAcknowledge(BUTTON2);
-
-    u8ChangeFlag = 1;
-    u8MaxRate = 190;
+    u8AgeHi[0] = u8AgeHi[0] + 1;
+    if(u8AgeHi[0] > 9)
+    {
+      u8AgeHi[0] = u8AgeHi[0] - 10;
+    }
+    au8AgeMessage[13] = u8AgeHi[0] + 48;
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, au8bSetAge);
+    LCDMessage(LINE2_START_ADDR, au8AgeMessage);
   }
   if(WasButtonPressed(BUTTON3))
   {
     ButtonAcknowledge(BUTTON3);
-
-    u8ChangeFlag = 1;
-    u8MaxRate = 180;
+    u8AgeLo[0] = u8AgeLo[0] + 1;
+    if(u8AgeLo[0] > 9)
+    {
+      u8AgeLo[0] = u8AgeLo[0] - 10;
+    }
+    au8AgeMessage[19] = u8AgeLo[0] + 48;
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, au8bSetAge);
+    LCDMessage(LINE2_START_ADDR, au8AgeMessage);
   }
 
   if(u8ChangeFlag == 1)
@@ -528,9 +575,9 @@ static void UserApp1SM_LoseWeightMode(void)
         au8HeartRate[10] = G_au8AntApiCurrentMessageBytes[7]/100 + 48;
         au8HeartRate[11] = (G_au8AntApiCurrentMessageBytes[7]%100)/10 + 48;
         au8HeartRate[12] = (G_au8AntApiCurrentMessageBytes[7]%100)%10 + 48;
-        LCDCommand(LCD_CLEAR_CMD);
+        LCDClearChars(LINE1_START_ADDR, 20);
         LCDMessage(LINE1_START_ADDR, au8HeartRate);
-        
+
         au8Sum[u8Counter] = G_au8AntApiCurrentMessageBytes[7];
         u8Counter++;
       }
@@ -634,105 +681,115 @@ static void UserApp1SM_FindMode(void)
       au8Temp[7] = u8Temp%10 + 48;
       LCDMessage(LINE2_START_ADDR, au8Temp);
 
-      if(s8RssiChannel0 > -120 && s8RssiChannel0 < -110)
+      if(s8RssiChannel0 < -90)
       {
-        LedOn(ORANGE);
-        LedOff(RED);
-        LedOff(PURPLE);
-        LedOff(CYAN);
-        LedOff(RED);
-        LedOff(BLUE);
-        LedOff(GREEN);
-        LedOff(WHITE);
+          LedOff(WHITE);
+          LedOff(PURPLE);
+          LedOff(BLUE);
+          LedOff(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
       }
-      if(s8RssiChannel0 > -110 && s8RssiChannel0 < -100)
+      if(s8RssiChannel0 > -90 || s8RssiChannel0 == -90)
       {
-        LedOn(ORANGE);
-        LedOn(RED);
-        LedOff(PURPLE);
-        LedOff(CYAN);
-        LedOff(RED);
-        LedOff(BLUE);
-        LedOff(GREEN);
-        LedOff(WHITE);
+          LedOn(WHITE);
+          LedOff(PURPLE);
+          LedOff(BLUE);
+          LedOff(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
       }
-      if(s8RssiChannel0 > -100 && s8RssiChannel0 < -90)
+      if(s8RssiChannel0 > -85 || s8RssiChannel0 == -85)
       {
-        LedOn(ORANGE);
-        LedOn(RED);
-        LedOn(PURPLE);
-        LedOff(CYAN);
-        LedOff(RED);
-        LedOff(BLUE);
-        LedOff(GREEN);
-        LedOff(WHITE);
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOff(BLUE);
+          LedOff(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
       }
-      if(s8RssiChannel0 > -90 && s8RssiChannel0 < -80)
+      if(s8RssiChannel0 > -80 || s8RssiChannel0 == -80)
       {
-        LedOn(ORANGE);
-        LedOn(RED);
-        LedOn(PURPLE);
-        LedOn(CYAN);
-        LedOff(RED);
-        LedOff(BLUE);
-        LedOff(GREEN);
-        LedOff(WHITE);
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOff(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
       }
-      if(s8RssiChannel0 > -80 && s8RssiChannel0 < -70)
+      if(s8RssiChannel0 > -75 || s8RssiChannel0 == -75)
       {
-        LedOn(ORANGE);
-        LedOn(RED);
-        LedOn(PURPLE);
-        LedOn(CYAN);
-        LedOn(RED);
-        LedOff(BLUE);
-        LedOff(GREEN);
-        LedOff(WHITE);
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOff(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
       }
-      if(s8RssiChannel0 > -70 && s8RssiChannel0 < -65)
+      if(s8RssiChannel0 > -70 || s8RssiChannel0 == -70)
       {
-        LedOn(ORANGE);
-        LedOn(RED);
-        LedOn(PURPLE);
-        LedOn(CYAN);
-        LedOn(RED);
-        LedOn(BLUE);
-        LedOff(GREEN);
-        LedOff(WHITE);
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOn(GREEN);
+          LedOff(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
       }
-      if(s8RssiChannel0 > -65 && s8RssiChannel0 < -60)
+      if(s8RssiChannel0 > -65 || s8RssiChannel0 == -65)
       {
-        LedOn(ORANGE);
-        LedOn(RED);
-        LedOn(PURPLE);
-        LedOn(CYAN);
-        LedOn(RED);
-        LedOn(BLUE);
-        LedOn(GREEN);
-        LedOff(WHITE);
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOn(GREEN);
+          LedOn(YELLOW);
+          LedOff(ORANGE);
+          LedOff(RED);
       }
-      if(s8RssiChannel0 > -60 && s8RssiChannel0 < -55)
+      if(s8RssiChannel0 > -60 || s8RssiChannel0 == -60)
       {
-        LedOn(ORANGE);
-        LedOn(RED);
-        LedOn(PURPLE);
-        LedOn(CYAN);
-        LedOn(RED);
-        LedOn(BLUE);
-        LedOn(GREEN);
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOn(GREEN);
+          LedOn(YELLOW);
+          LedOn(ORANGE);
+          LedOff(RED);
+      }
+      if(s8RssiChannel0 > -55 || s8RssiChannel0 == -55)
+      {
+          LedOn(WHITE);
+          LedOn(PURPLE);
+          LedOn(BLUE);
+          LedOn(CYAN);
+          LedOn(GREEN);
+          LedOn(YELLOW);
+          LedOn(ORANGE);
+          LedOn(RED);
+      }
+      if(s8RssiChannel0 > -50 || s8RssiChannel0 == -50)
+      {
         LedOn(WHITE);
-        
-      }
-      if(s8RssiChannel0 >= -50)
-      {
-        LedOff(ORANGE);
-        LedOff(RED);
-        LedOff(PURPLE);
-        LedOff(CYAN);
-        LedOff(RED);
-        LedOff(BLUE);
-        LedOff(GREEN);
-        LedOff(WHITE);
+        LedOn(PURPLE);
+        LedOn(BLUE);
+        LedOn(CYAN);
+        LedOn(GREEN);
+        LedOn(YELLOW);
+        LedOn(ORANGE);
+        LedOn(RED);
         s8RssiChannel0=-99;
       }
     }
