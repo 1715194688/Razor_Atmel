@@ -200,6 +200,8 @@ static void UserApp1SM_JudgeButton(void)
   bClear = TRUE;
   u8ChangeFlag = 0;
 
+  PWMAudioOff(BUZZER1);
+
   if(WasButtonPressed(BUTTON1))
   {
     ButtonAcknowledge(BUTTON1);
@@ -320,14 +322,14 @@ static void UserApp1SM_CommonMode(void)
         LedOff(YELLOW);
         LedOff(ORANGE);
         LedOff(RED);
-        LedBlink(WHITE, LED_2HZ);
-        LedBlink(PURPLE, LED_2HZ);
-        LedBlink(BLUE, LED_2HZ);
-        LedBlink(CYAN, LED_2HZ);
-        LedBlink(GREEN, LED_2HZ);
-        LedBlink(YELLOW, LED_2HZ);
-        LedBlink(ORANGE, LED_2HZ);
-        LedBlink(RED, LED_2HZ);
+        LedBlink(WHITE, LED_1HZ);
+        LedBlink(PURPLE, LED_1HZ);
+        LedBlink(BLUE, LED_1HZ);
+        LedBlink(CYAN, LED_1HZ);
+        LedBlink(GREEN, LED_1HZ);
+        LedBlink(YELLOW, LED_1HZ);
+        LedBlink(ORANGE, LED_1HZ);
+        LedBlink(RED, LED_1HZ);
       }
       if(u8HeartRate > 50 && u8HeartRate < 60)
       {
